@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div id="page-wrapper" >
+    <div class="row">
+        <div class="col-lg-12">
+            <h2 class="page-header">服务修改</h2>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row" style="font-size:13px">
+        <div class="col-lg-12" >
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    服务信息修改<input class="btn btn-xs " type="button"  value="收起"  id="btn" onclick="btn()"  style="position:top;">
+                </div>
+                <div class="panel-body" id="box">
+                    <div class="row">
+                        <form method="post">
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务名称<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="app_name" value="{{info[1]}}" placeholder="要与部署的工程目录同名，例：order" required></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">区域<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="location"  class="form-control">
+                                        <option {% if info[2] == "大陆" %}selected {% endif %} value="大陆">大陆</option>
+                                        <option {% if info[2] == "香港" %}selected {% endif %} value="香港">香港</option>
+                                        <option {% if info[2] == "美国" %}selected {% endif %} value="美国">美国</option>
+                                        <option {% if info[2] == "印度" %}selected {% endif %} value="印度">印度</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">环境<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="env" class="form-control">
+                                        <option {% if info[3] == "生产" %}selected {% endif %} value="生产">生产</option>
+
+                                    </select></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">终端<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"><select name="terminal" class="form-control">
+                                        <option  {% if info[4] == "PC" %}selected {% endif %} value="PC">PC</option>
+                                        <option {% if info[4] == "移动" %}selected {% endif %} value="移动">移动</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务类型<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select name="app_type" class="form-control">
+                                        <option  {% if info[8] == "api" %}selected {% endif %} value="api">api</option>
+                                        <option {% if info[8] == "web" %}selected {% endif %} value="web">web</option>
+                                        <option {% if info[8] == "job" %}selected {% endif %} value="job">job</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">域名</h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="domain1" value="{{info[6]}}" placeholder="子域名"></div>
+
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">容器<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"><select name="container" class="form-control">
+                                        <option {% if info[5] == "tomcat" %}selected {% endif %} value="tomcat">tomcat</option>
+                                        <option {% if info[5] == "resin" %}selected {% endif %} value="resin">resin</option>
+                                        <option {% if info[5] == "dubbo" %}selected {% endif %} value="dubbo">dubbo</option>
+                                        <option {% if info[5] == "其他" %}selected {% endif %} value="其他">其他</option>
+                                    </select></div>
+                                </div>
+
+                                  <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">开发人员<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="developer" value="{{info[9]}}" required placeholder="开发人员"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">功能描述<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="function" value="{{info[10]}}" required placeholder="填写服务的功能描述"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">监控url&nbsp;&nbsp;<font style="color:red;"> </font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="url" value="{{info[11]}}" placeholder="例：http://trade.lemall.com/order/refactor/generateOrder.json"></div>
+                                </div>
+
+
+                                <hr width="100%" />
+
+
+
+                                <div class="col-lg-12">
+                                    <div class="col-lg-5"> </div>
+                                    <input name="mode" value="update" hidden>
+                                    <input name="app_id" value="{{info[0]}}" hidden>
+                                    <button type="submit" class="btn btn-outline btn-primary confirm_delete" id="check">修改</button>
+                                </div>
+
+
+
+                            </form>
+                        </div>
+
+
+                    </div>
+                    <!-- /.row (nested) -->
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-12 -->
+    <div class="row" style="font-size:13px">
+        <div class="col-lg-12" >
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    服务IP修改<input class="btn btn-xs " type="button"  value="收起"  id="btn_1" onclick="btn2()"  style="position:top;">
+                </div>
+                <div class="panel-body" id="box_1">
+                    <div class="row">
+                    <div class="panel-body">
+                    <div class="dataTable_wrapper">
+                        <form method="post">
+                        <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th><input id="checkAll" type="checkbox" /></th>
+                                            <th>序号</th>
+                                            <th>IP</th>
+                                            <th>端口</th>
+                                            <th>IDC</th>
+                                            <th>配置</th>
+                                            <th>主备</th>
+                                            <th>删除</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for i in IPinfo %}
+                                        <tr>
+                                             <td><input value="{{i[7]}}" name="checkbox_list" type="checkbox" /></td>
+                                            <td>序号</td>
+                                            <td>{{i[0]}}</td>
+                                            <td>{{i[1]}}</td>
+                                            <td>{{i[3]}}</td>
+                                            <td>{{i[4]}} | {{i[5]}} | {{i[6]}}</td>
+                                            <td>{{i[2]}}</td>
+                                            <td><a href="app_update?app_id={{app_id}}&ins_id={{i[7]}}" class="confirm_delete"><span class="glyphicon glyphicon-trash"></span></a></td>
+                                        </tr>
+                                    {% endfor %}
+
+                                    </tbody>
+                                </table>
+
+                            <div class="col-lg-12">
+                                    <div class="col-lg-5"> </div>
+                                    <button type="submit" class="btn btn-outline btn-danger confirm_delete" >批量删除</button>
+                                </div>
+
+                            </form>
+                        <br><br>
+                           <hr width="100%" />
+<form method="post">
+              <div class="form-group col-lg-12">
+        <div class="col-lg-3"><h5 style="float:right;">新增IP<font style="color:red;"> *</font></h5></div>
+        <div class="col-lg-6"><textarea class="form-control" rows="3" name="IP" value="" placeholder="多个IP以','分隔；例：1.1.1.1,2.2.2.2" required></textarea></div></div>
+
+      <div class="form-group col-lg-12">
+          <div class="col-lg-3"><h5 style="float:right;">端口<font style="color:red;"> *</font></h5></div>
+        <div class="col-lg-6"><input class="form-control"  name="port" value=""  placeholder="请输入端口" required></div></div>
+
+         <div class="form-group col-lg-12">
+        <div class="col-lg-5"></div>
+              <input name="add" value="add" hidden>
+
+ <button   type="submit" class="btn btn-outline btn-primary confirm_delete">批量新增</button>
+      </div>
+        </div>
+
+
+
+          </form>
+
+                        </div>
+
+                    </div>
+                    </div>
+                    </div>
+                    <!-- /.row (nested) -->
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+
+    </div>
+
+    <!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+<!-- jQuery -->
+<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="/static/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/static/dist/js/sb-admin-2.js"></script>
+
+<script type="text/javascript">
+var btn1=document.getElementById('btn');
+var box1=document.getElementById('box');
+function btn(){ if(btn1.value=="收起"){box1.style.display='none';btn1.value="打开";
+	}else{box1.style.display='';btn1.value="收起";
+}
+}
+</script>
+
+<script type="text/javascript">
+var btn_2=document.getElementById('btn_1');
+var box_2=document.getElementById('box_1');
+function btn2(){ if(btn_2.value=="收起"){box_2.style.display='none';btn_2.value="打开";
+	}else{box_2.style.display='';btn_2.value="收起";
+}
+}
+</script>
+
+<script type="text/javascript">
+$(function(){
+        //$('table tr:not(:first)').remove();
+        var len = $('table tr').length;
+        for(var i = 1;i<len;i++){
+            $('table tr:eq('+i+') td:eq(1)').text(i);
+        }
+
+});
+
+</script>
+
+<script type="text/javascript">
+        $(function() {
+           $("#checkAll").click(function() {
+                $('input[name="checkbox_list"]').prop("checked",this.checked);
+            });
+            var $checkbox_list = $("input[name='checkbox_list']");
+            $checkbox_list.click(function(){
+                $("#checkAll").prop("checked",$checkbox_list.length == $("input[name='checkbox_list']:checked").length ? true : false);
+            });
+        });
+</script>
+
+
+<script>
+        $(' .confirm_delete').click(function(){
+                return confirm("确认要操作吗？");
+        });
+</script>
+{% endblock %}

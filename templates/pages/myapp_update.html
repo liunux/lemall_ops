@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div id="page-wrapper" >
+    <div class="row">
+        <div class="col-lg-12">
+            <h2 class="page-header">申请修改</h2>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row" style="font-size:13px">
+        <div class="col-lg-12" >
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    修改工单
+                </div>
+                <div class="panel-body" >
+                    <div class="row">
+
+                        <div class="col-lg-12">
+                            <form role="form" name="myform" method="post" action="myapp_apply">
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">申请人<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" value="{{nickname}}({{username}}@letv.com)" disabled="disabled"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">日期<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" value="{{createtime}}" disabled="disabled"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">上级领导<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" value="{{info[21]}}" disabled="disabled"></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">申请人电话<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="phone" value="{{info[22]}}" placeholder="请填写电话号码" value="" required > </div>
+                                </div>
+
+                                <hr width="100%"  />
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">项目名称&nbsp;&nbsp;</h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="project_name" value="{{info[1]}}" placeholder=""></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务名称<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="app_name" value="{{info[2]}}" placeholder="要与部署的工程目录同名，例：order" required></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">区域<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="location"  class="form-control">
+                                        <option {% if info[3] == "大陆" %}selected {% endif %} value="大陆">大陆</option>
+                                        <option {% if info[3] == "香港" %}selected {% endif %} value="香港">香港</option>
+                                        <option {% if info[3] == "美国" %}selected {% endif %} value="美国">美国</option>
+                                        <option {% if info[3] == "印度" %}selected {% endif %} value="印度">印度</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">环境<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="env" class="form-control">
+                                        <option {% if info[4] == "生产" %}selected {% endif %} value="生产">生产</option>
+
+                                    </select></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">终端<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"><select name="terminal" class="form-control">
+                                        <option  {% if info[5] == "PC" %}selected {% endif %} value="PC">PC</option>
+                                        <option {% if info[5] == "移动" %}selected {% endif %} value="移动">移动</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务类型<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select name="app_type" class="form-control">
+                                        <option  {% if info[6] == "api" %}selected {% endif %} value="api">api</option>
+                                        <option {% if info[6] == "web" %}selected {% endif %} value="web">web</option>
+                                        <option {% if info[6] == "job" %}selected {% endif %} value="job">job</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">域名名称&nbsp;&nbsp;</h5></div>
+                                    <div class="col-lg-2"> <input class="form-control" name="domain1" value="{{domain1}}" placeholder="子域名"></div>
+                                    <div class="col-lg-1"><font style="color:red;"> .</font></div>
+                                    <div class="col-lg-3"> <select name="domain2" class="form-control" >
+                                        <option  {% if domain1 == "shop.letv.com" %}selected {% endif %} value=".shop.letv.com">shop.letv.com</option>
+                                        <option {% if domain2 == "go.lemall.com" %}selected {% endif %} value=".go.lemall.com">go.lemall.com</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">容器<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"><select name="container" class="form-control">
+                                        <option {% if info[8] == "tomcat" %}selected {% endif %} value="tomcat">tomcat</option>
+                                        <option {% if info[8] == "resin" %}selected {% endif %} value="resin">resin</option>
+                                        <option {% if info[8] == "dubbo" %}selected {% endif %} value="dubbo">dubbo</option>
+                                        <option {% if info[8] == "其他" %}selected {% endif %} value="其他">其他</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">单实例内存需求<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-5 " > <input class="form-control" name="instance_mem" value="{{info[9][0:-1]}}" placeholder="默认2G，填写格式：2" required></div>
+                                    <div class="col-lg-1">  <span ><h4>G</h4></span></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务器总数<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-5"> <input class="form-control" name="machine_num" value="{{info[10][0:-1]}}" placeholder="默认2台，填写格式：2" required></div>
+                                    <div class="col-lg-1">  <span ><h4>台</h4></span></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">主备需求<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select name="slave" class="form-control">
+                                        <option  {% if info[11] == "0台备机，全部启动" %}selected {% endif %} value="0台备机，全部启动">0台备机，全部启动</option>
+                                        <option {% if info[11] == "1台备机，备机不启动" %}selected {% endif %} value="1台备机，备机不启动">1台备机，备机不启动</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">服务器需求<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-3"><select name="machine_status" class="form-control" >
+                                        <option {% if info[12] == "可以交叉部署" %}selected {% endif %} value="可以交叉部署">可以交叉部署</option>
+                                        <option  {% if info[12] == "空机器" %}selected {% endif %} value="空机器">空机器</option>
+                                    </select></div>
+                                    <div class="col-lg-3"> <input class="form-control" name="same_app_name" value="{{info[13]}}" placeholder="填写可交叉部署的项目名"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">功能描述<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="function" value="{{info[14]}}" required placeholder="填写服务的功能描述"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">监控url&nbsp;&nbsp;<font style="color:red;"> </font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="url" value="{{info[15]}}" placeholder="例：http://trade.lemall.com/order/refactor/generateOrder.json"></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">依赖组件&nbsp;&nbsp;</h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="common_server" value="{{info[16]}}" placeholder="填写redis,cbase等公共组件"></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">备注&nbsp;&nbsp;</h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="note" value="{{info[24]}}"></div>
+
+                                </div>
+
+
+                                <hr width="100%" />
+
+
+
+                                <div class="col-lg-12">
+                                    <div class="col-lg-5"> </div>
+                                    <input name="mode" value="update" hidden>
+                                    <input name="id" value="{{info[0]}}" hidden>
+                                    <button type="submit" class="btn btn-outline btn-primary confirm_delete" id="check">修改</button>
+                                </div>
+
+
+
+                            </form>
+                        </div>
+
+
+                    </div>
+                    <!-- /.row (nested) -->
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+
+    <!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+{% if result %}
+<script>
+    alert("{{result}}");
+</script>
+{% endif %}
+<!-- jQuery -->
+<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="/static/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/static/dist/js/sb-admin-2.js"></script>
+
+<script src="/static/js/sweetalert.min.js"></script>
+
+
+<script>
+        $(' .confirm_delete').click(function(){
+                return confirm("确认要修改吗？");
+        });
+</script>
+{% if result %}
+<script>
+    swal("{{result}}");
+</script>
+{% endif %}
+
+
+
+
+{% endblock %}
