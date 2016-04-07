@@ -87,7 +87,7 @@ def test_admin(fn):
     @wraps(fn)
     def wrapper(usertype,nickname,badge):
         if usertype == 'admin':
-            return fn(nickname,usertype)
+            return fn(usertype,nickname,badge)
         else:
             return abort(403)
     return wrapper
