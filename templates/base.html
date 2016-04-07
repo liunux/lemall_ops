@@ -72,7 +72,7 @@
                             <a href="index"><i class="fa fa-dashboard fa-fw"></i> 导航</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-list-alt fa-fw"></i> 服务管理<span class="fa arrow"></span></a>
+                            <a href="#"><i class="fa fa-list-alt fa-fw"></i> 服务管理&nbsp;&nbsp;<span class="badge info">{{badge['list']+badge['approve']+badge['action']}}</span><span class="fa arrow"></span></a>
                              <ul class="nav nav-second-level">
                                 <li>
                                     <a href="app_list">服务列表</a>
@@ -81,33 +81,33 @@
                                     <a href="myapp_apply">新服务申请</a>
                                 </li>
                                  <li>
-                                    <a href="myapp_list">我的申请</a>
+                                    <a href="myapp_list">我的申请&nbsp;&nbsp;<span class="badge info">{{badge['list']}}</span></a>
                                 </li>
                                 <li>
-                                    <a href="myapp_approve">我的审批</a>
+                                    <a href="myapp_approve">我的审批&nbsp;&nbsp;<span class="badge">{{badge['approve']}}</span></a>
                                 </li>
                                  {% if usertype == 'admin' %}
                                  <li>
-                                    <a href="myapp_action">我的执行</a>
+                                    <a href="myapp_action">我的执行&nbsp;&nbsp;<span class="badge">{{badge['action']}}</span></a>
                                 </li>
                                  {% endif %}
                             </ul>
                         </li>
                         <li>
-                            <a href="forms"><i class="fa fa-calendar fa-fw"></i> 发布系统</a>
+                            <a href="#"><i class="fa fa-calendar fa-fw"></i> 发布系统</a>
                         </li>
                         {% if usertype == 'admin' %}
                         <li>
                             <a href="#"><i class="fa fa-wrench fa-fw"></i> 软件安装<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="panels-wells">机器初始化</a>
+                                    <a href="#">机器初始化</a>
                                 </li>
                                 <li>
-                                    <a href="buttons">服务器</a>
+                                    <a href="#">服务器</a>
                                 </li>
                                 <li>
-                                    <a href="notifications">Notifications</a>
+                                    <a href="#">Notifications</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->
@@ -148,11 +148,11 @@
                         </li>
 
                         <li>
-                            <a href="tables"><i class="fa fa-edit fa-fw"></i> 事件管理</a>
+                            <a href="#"><i class="fa fa-edit fa-fw"></i> 事件管理</a>
                         </li>
 
                         <li>
-                            <a href="tables"><i class="fa fa-send fa-fw"></i> 运维周报</a>
+                            <a href="#"><i class="fa fa-send fa-fw"></i> 运维周报</a>
                         </li>
 
 
@@ -160,10 +160,10 @@
                             <a href="#"><i class="fa fa-h-square fa-fw"></i> 系统帮助<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="blank">Blank Page</a>
+                                    <a href="#">Blank Page</a>
                                 </li>
                                 <li>
-                                    <a href="login">Login Page</a>
+                                    <a href="#">Login Page</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->

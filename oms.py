@@ -70,14 +70,22 @@ def test_login(fn):
                 if username in i:
                     usertype = 'admin'
             print usertype
-            return fn(usertype,nickname)
+            listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
+            listnum = query_db(listsql)[0][0]
+            approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
+            approvenum = query_db(approvesql)[0][0]
+            actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
+            actionnum = query_db(actionsql)[0][0]
+            badge = {'list':listnum,'approve':approvenum,'action':actionnum}
+            print type(badge),badge
+            return fn(usertype,nickname,badge)
         else:
             return redirect(url_for('login',redirect_url=redirect_url))
     return wrapper
 
 def test_admin(fn):
     @wraps(fn)
-    def wrapper(usertype,nickname):
+    def wrapper(usertype,nickname,badge):
         if usertype == 'admin':
             return fn(nickname,usertype)
         else:
@@ -94,7 +102,7 @@ def logout():
 @app.route('/rbac')
 @test_login
 @test_admin
-def rbac(nickname,usertype):
+def rbac(usertype,nickname,badge):
     user_add = request.args.get('user_add','')
     delid = request.args.get('id','')
     if delid:
@@ -143,13 +151,13 @@ def rbac(nickname,usertype):
 @app.route('/')
 @app.route('/index')
 @test_login
-def index(usertype,nickname):
+def index(usertype,nickname,badge):
     return render_template('pages/index.html',**locals())
 
 @app.route('/cmdb')
 @test_login
 @test_admin
-def cmdb(nickname,usertype):
+def cmdb(usertype,nickname,badge):
     word =  request.args.get('word','')
     if word:
         infosql = "select sn,brand,hardmodel,system,idc,cabinet,onlineDate,out_ip,in_ip,cpu,mem,disk from ops_machine where idc like '%"+word+"%' or out_ip like '%"+word+"%' or in_ip like '%"+word+"%';"
@@ -179,7 +187,7 @@ def cmdb(nickname,usertype):
 
 @app.route('/app_list',methods=['POST', 'GET'])
 @test_login
-def app_list(usertype,nickname):
+def app_list(usertype,nickname,badge):
     location = request.args.get('location','大陆')
     env =  request.args.get('env','生产')
     terminal =  request.args.get('terminal','%')
@@ -228,7 +236,7 @@ def app_list(usertype,nickname):
 
 @app.route('/app_update',methods=['POST', 'GET'])
 @test_login
-def app_update(usertype,nickname):
+def app_update(usertype,nickname,badge):
     username = request.cookies.get('username')
     app_id = request.args.get('app_id','')
     app_name = request.values.get('app_name','')
@@ -309,7 +317,7 @@ def app_update(usertype,nickname):
 #             return json.dumps(resp)
 @app.route('/myapp_list')
 @test_login
-def myapp_list(usertype,nickname):
+def myapp_list(usertype,nickname,badge):
     result = request.args.get('result','')
     print "#result:",result
     if usertype == 'admin':
@@ -322,7 +330,7 @@ def myapp_list(usertype,nickname):
 
 @app.route('/myapp_update',methods=['POST', 'GET'])
 @test_login
-def myapp_update(usertype,nickname):
+def myapp_update(usertype,nickname,badge):
     username = request.cookies.get('username')
     id = request.args.get('id','')
     querysql = 'select * from ops_app_apply where id ='+id+'';
@@ -339,7 +347,7 @@ def myapp_update(usertype,nickname):
 
 @app.route('/myapp_apply',methods=['POST', 'GET'])
 @test_login
-def myapp_apply(usertype,nickname):
+def myapp_apply(usertype,nickname,badge):
     now = time.strftime("%Y-%m-%d", time.localtime())
     username = request.cookies.get('username')
     nowtime = str(time.time())[0:10]
@@ -428,7 +436,7 @@ def myapp_apply(usertype,nickname):
 
 @app.route('/myapp_approve',methods=['POST', 'GET'])
 @test_login
-def myapp_approve(usertype,nickname):
+def myapp_approve(usertype,nickname,badge):
     if request.method == 'POST':
         approvetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         leader_note = request.values.get('leader_note','')
@@ -452,7 +460,7 @@ def myapp_approve(usertype,nickname):
 
 @app.route('/myapp_action',methods=['POST', 'GET'])
 @test_login
-def myapp_action(usertype,nickname):
+def myapp_action(usertype,nickname,badge):
     if request.method == 'POST':
         dotime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         approvetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
