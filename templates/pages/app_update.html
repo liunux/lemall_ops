@@ -268,4 +268,18 @@ $(function(){
                 return confirm("确认要操作吗？");
         });
 </script>
+
+<script src="/static/js/sweetalert.min.js"></script>
+<script>
+    {% if not result %}
+    {% elif result == "no_ip" %}
+    swal("OMG!", "操作失败,{{ no_ip[1:] }}不在cmdb中", "error");
+    {% elif result == 1 %}
+    swal("Good!", "操作成功", "success");
+    {% else %}
+    swal("OMG!", "操作失败", "error");
+
+    {% endif %}
+</script>
+
 {% endblock %}

@@ -258,11 +258,7 @@ def app_update(usertype,nickname,badge):
     port = request.values.get('port','')
     print "#add:",add
     print "#checkbox_list:",checkbox_list
-    if mode:
-        updatesql = 'update ops_application set app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type' \
-                 '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" where app_id='+str(app_id)+';'
-        #print updatesql
-        result = modify_db(updatesql)
+
     if ins_id:
         deletesql = 'delete from ops_instance where ins_id = '+str(ins_id)+';'
         result = modify_db(deletesql)
@@ -272,14 +268,27 @@ def app_update(usertype,nickname,badge):
             deletesql = 'delete from ops_instance where ins_id = '+str(i)+';'
             #print deletesql
             result = modify_db(deletesql)
+    if mode:
+        updatesql = 'update ops_application set app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type' \
+                 '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" where app_id='+str(app_id)+';'
+        #print updatesql
+        result = modify_db(updatesql)
+        print "#1 result:", result
     if add:
         iplist = IP.split(',')
-        print iplist
+        no_ip = ''
         for i in iplist:
-            instancesql = 'INSERT INTO ops_instance(app_id,ip,port,status) SELECT '+str(app_id)+', "'+i+'",'+str(port)+',"" FROM DUAL WHERE NOT EXISTS(SELECT app_id FROM ops_instance WHERE app_id='+str(app_id)+' and ip="'+i+'" and port='+str(port)+');'
-            #print instancesql
-            result = modify_db(instancesql)
-            print result
+            selectsql = 'select count(1) from ops_machine where in_ip ="'+i+'";'
+            n = query_db(selectsql)[0][0]
+            if n == 0:
+                no_ip = no_ip +","+ i
+        if no_ip:
+            result = "no_ip"
+        else:
+            for i in iplist:
+                instancesql = 'INSERT INTO ops_instance(app_id,ip,port,status) SELECT '+str(app_id)+', "'+i+'",'+str(port)+',"" FROM DUAL WHERE NOT' \
+                              ' EXISTS(SELECT app_id FROM ops_instance WHERE app_id='+str(app_id)+' and ip="'+i+'" and port='+str(port)+');'
+                result = modify_db(instancesql)
 
     if app_id:
         querysql = 'select * from ops_application where app_id ='+app_id+';'
@@ -479,12 +488,21 @@ def myapp_action(usertype,nickname,badge):
             #print "#app_id",app_id
 
             iplist = IP.split(',')
+            #print iplist
+            no_ip = ''
             for i in iplist:
-                instancesql = 'insert into ops_instance(app_id,ip,port,status) values('+str(app_id)+',"'+i+'",'+str(port)+',""); '
-                #print instancesql
-                modify_db(instancesql)
+                selectsql = 'select count(1) from ops_machine where in_ip ="'+i+'";'
+                n = query_db(selectsql)[0][0]
+                if n == 0:
+                    no_ip = no_ip +","+ i
+            if no_ip:
+                result = "no_ip"
+            else:
+                for i in iplist:
+                    instancesql = 'insert into ops_instance(app_id,ip,port,status) values('+str(app_id)+',"'+i+'",'+str(port)+',""); '
+                    modify_db(instancesql)
                 checksql = 'update ops_app_apply set status = "已完成",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+check_id+';'
-                print checksql
+                #print checksql
                 result = modify_db(checksql)
             if slaveIP:
                 statussql = 'update ops_instance set status = "备" where app_id ='+str(app_id)+' and ip = "'+slaveIP+'"; '
