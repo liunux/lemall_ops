@@ -77,7 +77,7 @@ def test_login(fn):
             actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
             actionnum = query_db(actionsql)[0][0]
             badge = {'list':listnum,'approve':approvenum,'action':actionnum}
-            print type(badge),badge
+            #print type(badge),badge
             return fn(usertype,nickname,badge)
         else:
             return redirect(url_for('login',redirect_url=redirect_url))
@@ -334,6 +334,14 @@ def myapp_list(usertype,nickname,badge):
     else:
         sql = 'select * from ops_app_apply where developer="'+nickname+'" order by createtime desc;'
     info = query_db(sql)
+    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
+    listnum = query_db(listsql)[0][0]
+    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
+    approvenum = query_db(approvesql)[0][0]
+    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
+    actionnum = query_db(actionsql)[0][0]
+    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
+
     return render_template('pages/myapp_list.html',**locals())
 
 
@@ -440,6 +448,14 @@ def myapp_apply(usertype,nickname,badge):
 
         else:
             return abort(403)
+        listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
+        listnum = query_db(listsql)[0][0]
+        approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
+        approvenum = query_db(approvesql)[0][0]
+        actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
+        actionnum = query_db(actionsql)[0][0]
+        badge = {'list':listnum,'approve':approvenum,'action':actionnum}
+
 
     return render_template('pages/myapp_apply.html',**locals())
 
@@ -465,6 +481,13 @@ def myapp_approve(usertype,nickname,badge):
     else:
         sql = 'select * from ops_app_apply where leader="'+nickname+'" order by createtime desc;'
     info = query_db(sql)
+    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
+    listnum = query_db(listsql)[0][0]
+    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
+    approvenum = query_db(approvesql)[0][0]
+    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
+    actionnum = query_db(actionsql)[0][0]
+    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
     return render_template('pages/myapp_approve.html',**locals())
 
 @app.route('/myapp_action',methods=['POST', 'GET'])
@@ -519,6 +542,13 @@ def myapp_action(usertype,nickname,badge):
         info = query_db(sql)
     else:
         return abort(403)
+    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
+    listnum = query_db(listsql)[0][0]
+    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
+    approvenum = query_db(approvesql)[0][0]
+    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
+    actionnum = query_db(actionsql)[0][0]
+    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
 
     return render_template('pages/myapp_action.html',**locals())
 
