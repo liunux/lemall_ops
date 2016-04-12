@@ -9,7 +9,7 @@ sys.setdefaultencoding('utf-8')
 
 app = Flask(__name__)
 
-@app.route('/login',methods=['POST', 'GET'])
+@app.route('/login',methods=['POST', 'GET']) #登录
 def login():
     redirect_url = request.args.get('redirect_url','')
     if request.method == 'POST':
@@ -81,7 +81,7 @@ def test_login(fn):
             return fn(usertype,nickname,badge)
         else:
             return redirect(url_for('login',redirect_url=redirect_url))
-    return wrapper
+    return wrapper #登录状态验证 #登录状态验证
 
 def test_admin(fn):
     @wraps(fn)
@@ -90,16 +90,16 @@ def test_admin(fn):
             return fn(usertype,nickname,badge)
         else:
             return abort(403)
-    return wrapper
+    return wrapper #管理员验证
 
-@app.route('/logout',methods=['POST', 'GET'])
+@app.route('/logout',methods=['POST', 'GET']) #登出
 def logout():
     redirect_to_index = redirect('/')
     resp = make_response(redirect_to_index)
     resp.delete_cookie('username')
     return resp
 
-@app.route('/rbac')
+@app.route('/rbac') #权限管理
 @test_login
 @test_admin
 def rbac(usertype,nickname,badge):
@@ -148,7 +148,7 @@ def rbac(usertype,nickname,badge):
     allinfo = query_db(allsql)
     return render_template('pages/rbac.html',**locals())
 
-@app.route('/')
+@app.route('/') #主页
 @app.route('/index')
 @test_login
 def index(usertype,nickname,badge):
@@ -183,9 +183,9 @@ def cmdb(usertype,nickname,badge):
     in_w = query_db("select count(1) from ops_machine where idc like '%印度%' and hardmodel not like '%VM%';")[0][0]
     in_v = query_db("select count(1) from ops_machine where idc like '%印度%' and hardmodel like '%VM%';")[0][0]
 
-    return render_template('pages/cmdb.html',**locals())
+    return render_template('pages/cmdb.html',**locals()) #cmdb
 
-@app.route('/app_list',methods=['POST', 'GET'])
+@app.route('/app_list',methods=['POST', 'GET']) #服务列表
 @test_login
 def app_list(usertype,nickname,badge):
     location = request.args.get('location','大陆')
@@ -234,7 +234,7 @@ def app_list(usertype,nickname,badge):
 
     return render_template('pages/app_list.html',**locals())
 
-@app.route('/app_update',methods=['POST', 'GET'])
+@app.route('/app_update',methods=['POST', 'GET']) #服务修改
 @test_login
 def app_update(usertype,nickname,badge):
     username = request.cookies.get('username')
@@ -324,7 +324,7 @@ def app_update(usertype,nickname,badge):
 #          except:
 #             resp='ERROR'
 #             return json.dumps(resp)
-@app.route('/myapp_list')
+@app.route('/myapp_list') #我的申请列表
 @test_login
 def myapp_list(usertype,nickname,badge):
     result = request.args.get('result','')
@@ -345,7 +345,7 @@ def myapp_list(usertype,nickname,badge):
     return render_template('pages/myapp_list.html',**locals())
 
 
-@app.route('/myapp_update',methods=['POST', 'GET'])
+@app.route('/myapp_update',methods=['POST', 'GET']) #修改我的申请
 @test_login
 def myapp_update(usertype,nickname,badge):
     username = request.cookies.get('username')
@@ -362,7 +362,7 @@ def myapp_update(usertype,nickname,badge):
 
     return render_template('pages/myapp_update.html',**locals())
 
-@app.route('/myapp_apply',methods=['POST', 'GET'])
+@app.route('/myapp_apply',methods=['POST', 'GET']) #新服务申请
 @test_login
 def myapp_apply(usertype,nickname,badge):
     now = time.strftime("%Y-%m-%d", time.localtime())
@@ -459,7 +459,7 @@ def myapp_apply(usertype,nickname,badge):
 
     return render_template('pages/myapp_apply.html',**locals())
 
-@app.route('/myapp_approve',methods=['POST', 'GET'])
+@app.route('/myapp_approve',methods=['POST', 'GET']) #我的审批
 @test_login
 def myapp_approve(usertype,nickname,badge):
     if request.method == 'POST':
@@ -490,7 +490,7 @@ def myapp_approve(usertype,nickname,badge):
     badge = {'list':listnum,'approve':approvenum,'action':actionnum}
     return render_template('pages/myapp_approve.html',**locals())
 
-@app.route('/myapp_action',methods=['POST', 'GET'])
+@app.route('/myapp_action',methods=['POST', 'GET']) #我的执行
 @test_login
 def myapp_action(usertype,nickname,badge):
     if request.method == 'POST':
@@ -551,6 +551,60 @@ def myapp_action(usertype,nickname,badge):
     badge = {'list':listnum,'approve':approvenum,'action':actionnum}
 
     return render_template('pages/myapp_action.html',**locals())
+
+@app.route('/rel_config',methods=['POST', 'GET'])  #配置KEY列表
+@test_login
+def rel_config(usertype,nickname,badge):
+    location = request.args.get('location','')
+    env  = request.args.get('env','')
+    type = request.args.get('type','')
+    word = request.args.get('word','')
+    id = request.args.get('id','')
+    if id:
+        delsql = 'delete from rel_config where id= '+id+';'
+        result = modify_db(delsql)
+
+    sql = 'select * from rel_config where location like "%'+location+'%" and env like "%'+env+'%" and type like "%'+type+'%" and conf_key like "%'+word+'%";'
+    print sql
+    info = query_db(sql)
+    print info,location,env,type,word
+    return render_template('pages/rel_config.html',**locals())
+
+@app.route('/rel_conf_add',methods=['POST', 'GET'])  #新增KEY
+@test_login
+def rel_conf_add(usertype,nickname,badge):
+    location = request.values.get('location','')
+    env  = request.values.get('env','')
+    type = request.values.get('type','')
+    conf_value = request.values.get('conf_value','')
+    conf_key = request.values.get('conf_key','')
+    print location,env,conf_value,conf_key
+    if conf_key:
+        insertsql = 'insert into rel_config values("","'+conf_key+'","'+conf_value+'","'+location+'","'+env+'","'+type+'");'
+        print insertsql
+        result = modify_db(insertsql)
+        print result
+    return render_template('pages/rel_conf_add.html',**locals())
+
+@app.route('/rel_conf_update',methods=['POST', 'GET'])  #新增KEY
+@test_login
+def rel_conf_update(usertype,nickname,badge):
+    location = request.values.get('location','')
+    env  = request.values.get('env','')
+    type = request.values.get('type','')
+    conf_value = request.values.get('conf_value','')
+    conf_key = request.values.get('conf_key','')
+    id = request.args.get('id','')
+    print location,env,type,conf_value,conf_key,id
+    if conf_key:
+        updatesql = 'update rel_config set location = "'+location+'",env = "'+env+'",type = "'+type+'",conf_key = "'+conf_key+'",conf_value = "'+conf_value+'" where id = '+id+';'
+        print updatesql
+        result = modify_db(updatesql)
+        print result
+    sql = 'select * from rel_config where id ='+id+';'
+    info = query_db(sql)
+
+    return render_template('pages/rel_conf_update.html',**locals())
 
 if __name__ == '__main__':
     app.debug = True

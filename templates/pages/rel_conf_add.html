@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div id="page-wrapper" >
+    <div class="row">
+        <div class="col-lg-12">
+            <h2 class="page-header">配置管理</h2>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row" style="font-size:13px">
+        <div class="col-lg-12" >
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    新增配置
+                </div>
+                <div class="panel-body" >
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <form role="form" name="myform" method="post">
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">区域<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="location"  class="form-control">
+                                        <option {% if location == "大陆" %}selected {% endif %} value="大陆">大陆</option>
+                                        <option {% if location == "香港" %}selected {% endif %} value="香港">香港</option>
+                                        <option {% if location == "美国" %}selected {% endif %} value="美国">美国</option>
+                                        <option {% if location == "印度" %}selected {% endif %} value="印度">印度</option>
+                                    </select></div>
+                                </div>
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">环境<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <select  name="env" class="form-control">
+                                         <option {% if env == "生产" %}selected {% endif %} value="生产">生产</option>
+                                    <option {% if env == "预览" %}selected {% endif %} value="预览">预览</option>
+                                    <option {% if env == "测试" %}selected {% endif %} value="测试">测试</option>
+                                    <option {% if env == "压测" %}selected {% endif %} value="压测">压测</option>
+                                    <option {% if env == "运维" %}selected {% endif %} value="运维">运维</option>
+                                    <option {% if env == "开发" %}selected {% endif %} value="开发">开发</option>
+                                    <option {% if env == "支付" %}selected {% endif %} value="支付">支付</option>
+                                    <option {% if env == "lepar" %}selected {% endif %} value="lepar">lepar</option>
+
+                                    </select></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">类型<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"><select name="type" class="form-control">
+                                    <option {% if env == "db" %}selected {% endif %} value="db">db</option>
+                                    <option {% if env == "zookeeper" %}selected {% endif %} value="zookeeper">zookeeper</option>
+                                </select></div>
+                                </div>
+
+
+                                <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">KEY信息<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="conf_key" value="{{conf_key}}" required placeholder="填写KEY信息"></div>
+                                </div>
+
+                            <div class="form-group col-lg-12">
+                                    <div class="col-lg-3">  <h5 style="float:right;">VALUE信息<font style="color:red;"> *</font></h5></div>
+                                    <div class="col-lg-6"> <input class="form-control" name="conf_value" value="{{conf_value}}" required placeholder="填写VALUE信息"></div>
+                                </div>
+
+
+                                <hr width="100%" />
+
+
+
+                                <div class="col-lg-12">
+                                    <div class="col-lg-5"> </div>
+                                    <button type="submit" class="btn btn-outline btn-primary confirm_delete" id="check">新增</button>
+                                </div>
+
+
+
+                            </form>
+                        </div>
+
+
+                    </div>
+                    <!-- /.row (nested) -->
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+
+    <!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+
+<!-- jQuery -->
+<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="/static/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/static/dist/js/sb-admin-2.js"></script>
+
+
+<script language="javascript" type="text/javascript">
+$(document).ready(function(){
+$('#myselect').change(function(){
+var p1=$(this).children('option:selected').val();//这就是selected的值
+if (p1=="空机器") {
+    $("#same_app_name").hide();
+}else{
+    $("#same_app_name").show();
+}
+})
+})
+</script>
+<script src="/static/js/sweetalert.min.js"></script>
+
+
+<script>
+        $(' .confirm_delete').click(function(){
+                return confirm("确认要提交吗？");
+        });
+</script>
+
+<script>
+    {% if result == 1 %}
+    swal("Good!", "添加成功", "success");
+    {% elif result == None %}
+    swal("OMG!", "添加失败", "error");
+    {% else %}
+    {% endif %}
+</script>
+{% endblock %}

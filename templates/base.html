@@ -72,9 +72,6 @@
                             <a href="index"><i class="fa fa-dashboard fa-fw"></i> 导航</a>
                         </li>
                         <li>
-                            <a href="cmdb"><i class="fa fa-table fa-fw"></i> CMDB</a>
-                        </li>
-                        <li>
                             <a href="#"><i class="fa fa-list-alt fa-fw"></i> 服务管理&nbsp;&nbsp;<span class="badge info">{{badge['list']+badge['approve']+badge['action']}}</span><span class="fa arrow"></span></a>
                              <ul class="nav nav-second-level">
                                 <li>
@@ -97,9 +94,17 @@
                             </ul>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-calendar fa-fw"></i> 发布系统</a>
+                            <a href="#"><i class="fa fa-calendar fa-fw"></i> 发布系统<span class="fa arrow"></span></a>
+                             <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="rel_config">配置管理</a>
+                                </li>
+                            </ul>
                         </li>
                         {% if usertype == 'admin' %}
+                            <li>
+                            <a href="cmdb"><i class="fa fa-table fa-fw"></i> CMDB</a>
+                        </li>
                         <li>
                             <a href="#"><i class="fa fa-wrench fa-fw"></i> 软件安装<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
