@@ -185,6 +185,16 @@ def cmdb(usertype,nickname,badge):
 
     return render_template('pages/cmdb.html',**locals()) #cmdb
 
+def empty():
+    esql = 'select app_id from ops_application where app_name="空机器";'
+    eid = query_db(esql)[0][0]
+    a = query_db('select count(1) from (select distinct ip from ops_instance)a ;')[0][0]
+    b = query_db('select count(1) from ops_machine; ')[0][0]
+    print a,b
+    if b != a:
+        modify_db('delete from ops_instance where app_id = '+str(eid)+';')
+        modify_db('insert into ops_instance(app_id,ip,port) (select "'+str(eid)+'",in_ip,"" from ops_machine where in_ip not in (select ip from ops_instance));')
+
 @app.route('/app_list',methods=['POST', 'GET']) #服务列表
 @test_login
 def app_list(usertype,nickname,badge):
@@ -201,13 +211,8 @@ def app_list(usertype,nickname,badge):
         modify_db(deleteappsql)
         deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
         modify_db(deleteinssql)
+        qw = empty()
         result = "ok"
-    if "空" in word:
-        esql = 'select app_id from ops_application where app_name="空机器";'
-        eid = query_db(esql)[0][0]
-        print eid
-        modify_db('delete from ops_instance where app_id = '+str(eid)+';')
-        modify_db('insert into ops_instance(app_id,ip,port) (select "'+str(eid)+'",in_ip,"" from ops_machine where in_ip not in (select ip from ops_instance));')
     if mohu:
         word = '%'+word+'%'
     if word:
@@ -262,12 +267,14 @@ def app_update(usertype,nickname,badge):
     if ins_id:
         deletesql = 'delete from ops_instance where ins_id = '+str(ins_id)+';'
         result = modify_db(deletesql)
+        empty()
         #print deletesql
     if checkbox_list:
         for i in checkbox_list:
             deletesql = 'delete from ops_instance where ins_id = '+str(i)+';'
             #print deletesql
             result = modify_db(deletesql)
+            empty()
     if mode:
         updatesql = 'update ops_application set app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type' \
                  '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" where app_id='+str(app_id)+';'
@@ -289,6 +296,7 @@ def app_update(usertype,nickname,badge):
                 instancesql = 'INSERT INTO ops_instance(app_id,ip,port,status) SELECT '+str(app_id)+', "'+i+'",'+str(port)+',"" FROM DUAL WHERE NOT' \
                               ' EXISTS(SELECT app_id FROM ops_instance WHERE app_id='+str(app_id)+' and ip="'+i+'" and port='+str(port)+');'
                 result = modify_db(instancesql)
+                empty()
 
     if app_id:
         querysql = 'select * from ops_application where app_id ='+app_id+';'
@@ -524,6 +532,7 @@ def myapp_action(usertype,nickname,badge):
                 for i in iplist:
                     instancesql = 'insert into ops_instance(app_id,ip,port,status) values('+str(app_id)+',"'+i+'",'+str(port)+',""); '
                     modify_db(instancesql)
+                    empty()
                 checksql = 'update ops_app_apply set status = "已完成",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+check_id+';'
                 #print checksql
                 result = modify_db(checksql)
