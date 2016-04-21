@@ -621,6 +621,23 @@ def rel_conf_update(usertype,nickname,badge):
 
     return render_template('pages/rel_conf_update.html',**locals())
 
+#脚本调用接口
+@app.route('/query',methods=['POST', 'GET'])
+def query():
+    if request.method == 'POST':
+        app_name = request.values.get('a','')
+        location = request.values.get('b','大陆')
+        env = request.values.get('c','生产')
+        ip = request.values.get('ip','')
+        ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
+        ipinfo = query_db(ip_sql)
+        app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
+        appinfo = query_db(app_sql)
+
+    return render_template('query.html',**locals())
+
+
+
 if __name__ == '__main__':
     app.debug = True
     #app.run(host='10.154.81.158',port=8000)
