@@ -208,7 +208,10 @@ def app_list(usertype,nickname,badge):
     word1 =  request.args.get('word','')
     mohu = request.args.get('mohu','')
     de_id = request.args.get('de_id','')
-
+    app_num = query_db("select count(1) from ops_application  where  location like '"+location+"' and env like '"+env+"';")[0][0]
+    mac_num = query_db("select count(1) from (select ip from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' group by ip) a;")[0][0]
+    ins_num = query_db("select count(1) from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"';")[0][0]
+    print location,env,app_num,mac_num,ins_num
     if de_id and usertype == 'admin':
         deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
         modify_db(deleteappsql)
