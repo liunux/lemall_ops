@@ -37,6 +37,9 @@
                                     <div class="col-lg-3">  <h5 style="float:right;">环境<font style="color:red;"> *</font></h5></div>
                                     <div class="col-lg-6"> <select  name="env" class="form-control">
                                         <option {% if info[3] == "生产" %}selected {% endif %} value="生产">生产</option>
+                                    <option {% if info[3] == "预览" %}selected {% endif %} value="预览">预览</option>
+                                    <option {% if info[3] == "测试" %}selected {% endif %} value="测试">测试</option>
+                                    <option {% if info[3] == "运维" %}selected {% endif %} value="运维">运维</option>
 
                                     </select></div>
                                 </div>
