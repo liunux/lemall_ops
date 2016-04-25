@@ -152,7 +152,12 @@
                                             <td>{{i[1]}}</td>
                                             <td>{{i[3]}}</td>
                                             <td>{{i[4]}} | {{i[5]}} | {{i[6]}}</td>
-                                            <td>{{i[2]}}</td>
+                                            {% if i[2] =='备' %}
+                                            <td><a href="app_update?app_id={{app_id}}&set_id={{i[7]}}" class="confirm_delete"><span class="btn label label-warning">备</span></a></td>
+                                            {% else %}
+                                            <td><a href="app_update?app_id={{app_id}}&off_id={{i[7]}}" class="confirm_delete "><span class="btn label label-info">主</span></a></td>
+                                            {% endif %}
+
                                             <td><a href="app_update?app_id={{app_id}}&ins_id={{i[7]}}" class="confirm_delete"><span class="glyphicon glyphicon-trash"></span></a></td>
                                         </tr>
                                     {% endfor %}

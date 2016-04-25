@@ -267,9 +267,16 @@ def app_update(usertype,nickname,badge):
     add =  request.values.get('add','')
     IP = request.values.get('IP','')
     port = request.values.get('port','')
+    set_id = request.values.get('set_id','')
+    off_id = request.values.get('off_id','')
     print "#add:",add
     print "#checkbox_list:",checkbox_list
-
+    if set_id:
+        setsql = 'update ops_instance set status = "" where ins_id = '+str(set_id)+';'
+        result = modify_db(setsql)
+    if off_id:
+        offsql = 'update ops_instance set status = "备" where ins_id = '+str(off_id)+';'
+        result = modify_db(offsql)
     if ins_id:
         deletesql = 'delete from ops_instance where ins_id = '+str(ins_id)+';'
         result = modify_db(deletesql)
