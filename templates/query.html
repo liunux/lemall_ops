@@ -1,5 +1,4 @@
-{% if ipinfo %}{{ location }}-{{ env }}-{{ app_name }}
-{% for i in ipinfo %}{{ i[1] }}:{{ i[2] }} {{ i[3] }}
+{% if ipinfo %}{% for i in ipinfo %}{{ i[1] }}:{{ i[2] }} {{ i[3] }}
 {% endfor %}{% endif %}
 {% if appinfo %}{{ ip }}
 {% for i in appinfo %}{{ i[1] }}-{{ i[2] }}-{{ i[0] }}
