@@ -458,7 +458,7 @@ def myapp_apply(usertype,nickname,badge):
 
             else:
                 applysql = 'insert into ops_app_apply values("","'+project_name+'","'+app_name+'","'+location+'","'+env+'","'+terminal+'","'+app_type+'","'+domain+'","'+container+'","'+instance_mem+'G","'+machine_num+'台","'+slave+'",' \
-                    '"'+machine_status+'","'+same_app_name+'","'+function+'","'+url+'","'+common_server+'","'+nickname+'","'+createtime+'",null,null,"'+p_nickname+'","'+phone+'","'+status+'","'+note+'",null,null,null);'
+                    '"'+machine_status+'","'+same_app_name+'","'+function+'","'+url+'","'+common_server+'","'+nickname+'","'+createtime+'",null,null,"'+p_nickname+'","'+phone+'","'+status+'","'+note+'",null,null,null,null);'
                 print phone,applysql
                 n = modify_db(applysql)
                 print n
