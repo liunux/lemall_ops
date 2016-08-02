@@ -442,6 +442,7 @@ def myapp_action(usertype,nickname,badge):
                     no_ip = no_ip +","+ i
             if no_ip:
                 result = "no_ip"
+
             else:
                 applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime,org_name) (select app_name,location,' \
                         'env,terminal,container,domain,app_type,developer,function,dotime,leader from ops_app_apply where id='+check_id+');'
