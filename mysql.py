@@ -7,6 +7,7 @@ import re
 #from printColor import *
 import json
 
+gap = 3
 work_path = '/root/linpeng/test/'
 
 def query_db(sql):
