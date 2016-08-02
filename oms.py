@@ -486,7 +486,7 @@ def myapp_action(usertype,nickname,badge):
             app_sql = "select app_id,svn,version,type from rel_apply where id = "+str(yes_id)+";"
             app_id = query_db(app_sql)[0][0]
             app_name = query_db('select app_name from ops_application where app_id ='+str(app_id)+';')[0][0]
-            app_svn = int(str(query_db(app_sql)[0][1]).split('_')[0])+1
+            app_svn = int(str(query_db(app_sql)[0][1]).split('_')[0])+gap
             app_type = query_db(app_sql)[0][3]
             ipsql = 'select ip,port,status from ops_instance where app_id = '+str(app_id)+';'
             ipinfo = query_db(ipsql)
