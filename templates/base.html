@@ -71,26 +71,30 @@
                         <li>
                             <a href="index"><i class="fa fa-dashboard fa-fw"></i> 导航</a>
                         </li>
+                    <li>
+                            <a href="#"><i class="fa fa-list-alt fa-fw"></i> 工单列表&nbsp;&nbsp;<span class="badge info">{% if usertype == "admin" %}{{badge['list1']+badge['list2']+badge['action1']+badge['action2']}} {% else %} {{badge['list1']+badge['list2']}}{% endif %}</span><span class="fa arrow"></span></a>
+                             <ul class="nav nav-second-level">
+
+                                 <li>
+                                    <a href="myapp_list">我的申请&nbsp;&nbsp;<span class="badge info">{{badge['list1']+badge['list2']}}</span></a>
+                                </li>
+
+                                 {% if usertype == 'admin' %}
+                                 <li>
+                                    <a href="myapp_action">我的执行&nbsp;&nbsp;<span class="badge info">{{badge['action1']+badge['action2']}}</span></a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </li>
                         <li>
-                            <a href="#"><i class="fa fa-list-alt fa-fw"></i> 服务管理&nbsp;&nbsp;<span class="badge info">{{badge['list']+badge['approve']+badge['action']}}</span><span class="fa arrow"></span></a>
+                            <a href="#"><i class="fa fa-table fa-fw"></i> 服务管理<span class="fa arrow"></span></a>
                              <ul class="nav nav-second-level">
                                 <li>
                                     <a href="app_list">服务列表</a>
                                 </li>
-{#                                <li>#}
-{#                                    <a href="myapp_apply">新服务申请</a>#}
-{#                                </li>#}
                                  <li>
-                                    <a href="myapp_list">我的申请&nbsp;&nbsp;<span class="badge info">{{badge['list']}}</span></a>
+                                    <a href="myapp_apply">新服务申请</a>
                                 </li>
-                                <li>
-                                    <a href="myapp_approve">我的审批&nbsp;&nbsp;<span class="badge">{{badge['approve']}}</span></a>
-                                </li>
-                                 {% if usertype == 'admin' %}
-                                 <li>
-                                    <a href="myapp_action">我的执行&nbsp;&nbsp;<span class="badge">{{badge['action']}}</span></a>
-                                </li>
-                                 {% endif %}
                             </ul>
                         </li>
                         <li>
@@ -99,14 +103,30 @@
                                 <li>
                                     <a href="rel_config">配置管理</a>
                                 </li>
+                                 <li>
+                                    <a href="rel_list">发版申请列表</a>
+                                </li>
                             </ul>
                         </li>
                         {% if usertype == 'admin' %}
-                            <li>
+                        <li>
                             <a href="cmdb"><i class="fa fa-table fa-fw"></i> CMDB</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-wrench fa-fw"></i> 软件安装<span class="fa arrow"></span></a>
+                            <a href="#"><i class="fa fa-sitemap fa-fw"></i> 监控系统<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="http://res.lemall.com/icingaweb2">icinga</a>
+                                </li>
+                                <li>
+                                    <a href="http://res.lemall.com/open-falcon">open-falcon</a>
+                                </li>
+
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-wrench fa-fw"></i> 软件安装(未开通)<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
                                     <a href="#">机器初始化</a>
@@ -120,49 +140,14 @@
                             </ul>
                             <!-- /.nav-second-level -->
                         </li>
-
                         <li>
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i> 监控系统<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="http://res.lemall.com/icingaweb2">icinga</a>
-                                </li>
-                                <li>
-                                    <a href="http://res.lemall.com/open-falcon">open-falcon</a>
-                                </li>
-                                <li>
-                                    <a href="#">Third Level <span class="fa arrow"></span></a>
-                                    <ul class="nav nav-third-level">
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                        <li>
-                                            <a href="#">Third Level Item</a>
-                                        </li>
-                                    </ul>
-                                    <!-- /.nav-third-level -->
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
+                            <a href="#"><i class="fa fa-edit fa-fw"></i> 事件管理(未开通)</a>
                         </li>
-
                         <li>
-                            <a href="#"><i class="fa fa-edit fa-fw"></i> 事件管理</a>
+                            <a href="#"><i class="fa fa-send fa-fw"></i> 运维周报(未开通)</a>
                         </li>
-
                         <li>
-                            <a href="#"><i class="fa fa-send fa-fw"></i> 运维周报</a>
-                        </li>
-
-
-                        <li>
-                            <a href="#"><i class="fa fa-h-square fa-fw"></i> 系统帮助<span class="fa arrow"></span></a>
+                            <a href="#"><i class="fa fa-h-square fa-fw"></i> 系统帮助(未开通)<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
                                     <a href="#">Blank Page</a>
@@ -173,8 +158,6 @@
                             </ul>
                             <!-- /.nav-second-level -->
                         </li>
-
-
                         <li>
                             <a href="#"><i class="fa fa-user fa-fw"></i> 系统管理<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">

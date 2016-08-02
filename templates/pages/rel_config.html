@@ -15,7 +15,7 @@
         <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    配置列表
+                    配置查询和修改
                 </div>
                 <!-- /.panel-heading -->
                 <div class="panel-body">
@@ -28,6 +28,8 @@
                                     <option {% if location == "香港" %}selected {% endif %} value="香港">香港</option>
                                     <option {% if location == "美国" %}selected {% endif %} value="美国">美国</option>
                                     <option {% if location == "印度" %}selected {% endif %} value="印度">印度</option>
+                                    <option {% if location == "俄罗斯" %}selected {% endif %} value="俄罗斯">俄罗斯</option>
+
                                 </select></div>
                             <div class="col-sm-2">
                                 <select name="env" class="form-control">
@@ -80,14 +82,14 @@
                             <tbody>
 {%  for i in info %}
  <tr>
-<td>{{ i[3] }}</td>
-<td>{{ i[4] }}</td>
-<td>{{ i[5] }}</td>
-<td>{{ i[1] }}</td>
+<td width="50">{{ i[3] }}</td>
+<td width="50">{{ i[4] }}</td>
+<td width="60">{{ i[5] }}</td>
+<td >{{ i[1] }}</td>
      {% if usertype == "admin" %}
 <td>{{ i[2] }}</td>
- <td align=center><a href="rel_conf_update?id={{i[0]}}"><span class="glyphicon glyphicon-pencil"></span></a></td>
- <td align=center><a href="rel_config?id={{i[0]}}&location={{ location }}&env={{ env }}&type={{ type }}&word={{ word }}"><span class="glyphicon glyphicon-trash confirm_delete"></span></a></td>
+ <td align=center width="40"><a href="rel_conf_update?id={{i[0]}}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+ <td align=center width="40"><a href="rel_config?id={{i[0]}}&location={{ location }}&env={{ env }}&type={{ type }}&word={{ word }}"><span class="glyphicon glyphicon-trash confirm_delete"></span></a></td>
 {% endif %}
 </tr>
 {% endfor %}

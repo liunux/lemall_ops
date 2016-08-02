@@ -1,7 +1,8 @@
 #encoding:utf-8
-from flask import Flask,app,request,render_template, redirect, url_for, session, abort,jsonify,make_response,send_from_directory,make_response
+from flask import Flask,app,request,render_template, redirect, url_for, session, abort,jsonify,make_response,send_from_directory,make_response,jsonify
 from mysql import *
-import requests,json,urllib,urllib2
+from function import *
+import requests,json,urllib,urllib2,thread
 import ssl,os,MySQLdb,sys,time,hashlib
 from functools import wraps
 reload(sys)
@@ -25,10 +26,10 @@ def login():
             #print req,type(req)
             #http = "https://oauth.lecloud.com/nopagelogin?&ldap=true&username="+username+"&password="+password
             #d=requests.get('%s' % http).text
-            print req
+            # print req
             info = json.loads(req)
             if info['client_id']:
-                print "###",redirect_url
+                # print "###",redirect_url
                 redirect_to_index = redirect(redirect_url)
                 resp = make_response(redirect_to_index)
                 resp.set_cookie('username',value=username,max_age=36000)
@@ -41,56 +42,6 @@ def login():
     else:
         return render_template('pages/login.html',redirect_url=redirect_url)
 
-def test_login(fn):
-    @wraps(fn)
-    def wrapper():
-        redirect_url = request.endpoint
-        username = request.cookies.get('username',None)
-        if username:
-            nowtime = str(time.time())[0:10]
-            url = 'http://sso.leshiren.cn:20008/user.php'
-            tmp = "site=zhixin_portal&time="+nowtime+"&username="+username+"vfi7qc9jlpwk"
-            m = hashlib.md5()
-            m.update(tmp)
-            sign = m.hexdigest()
-            data = {}
-            data['username'] = username
-            data['site'] = "zhixin_portal"
-            data['time'] = nowtime
-            data['sign'] = sign
-            post_data = urllib.urlencode(data)
-            req=urllib2.urlopen(url, post_data).read()
-            info = json.loads(req)
-            nickname = info['objects']['nickname']
-            print nickname
-            sql = 'select username from ops_user;'
-            adminlist = query_db(sql)
-            usertype = 'guest'
-            for i in adminlist:
-                if username in i:
-                    usertype = 'admin'
-            print usertype
-            listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
-            listnum = query_db(listsql)[0][0]
-            approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
-            approvenum = query_db(approvesql)[0][0]
-            actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
-            actionnum = query_db(actionsql)[0][0]
-            badge = {'list':listnum,'approve':approvenum,'action':actionnum}
-            #print type(badge),badge
-            return fn(usertype,nickname,badge)
-        else:
-            return redirect(url_for('login',redirect_url=redirect_url))
-    return wrapper #登录状态验证 #登录状态验证
-
-def test_admin(fn):
-    @wraps(fn)
-    def wrapper(usertype,nickname,badge):
-        if usertype == 'admin':
-            return fn(usertype,nickname,badge)
-        else:
-            return abort(403)
-    return wrapper #管理员验证
 
 @app.route('/logout',methods=['POST', 'GET']) #登出
 def logout():
@@ -98,6 +49,7 @@ def logout():
     resp = make_response(redirect_to_index)
     resp.delete_cookie('username')
     return resp
+
 
 @app.route('/rbac') #权限管理
 @test_login
@@ -109,8 +61,8 @@ def rbac(usertype,nickname,badge):
         delsql = 'delete from ops_user where id ='+delid+';'
         modify_db(delsql)
         result = 4
-    print delid
-    print user_add
+    # print delid
+    # print user_add
     if user_add:
         nowtime = str(time.time())[0:10]
         url = 'http://sso.leshiren.cn:20008/user.php'
@@ -130,7 +82,7 @@ def rbac(usertype,nickname,badge):
         #nickname = info['objects']['nickname']
         if status == 0:
             result = 2
-            print result
+            # print result
         elif status == 1:
             add_nickname = info['objects']['nickname']
             add_email = info['objects']['email']
@@ -152,6 +104,7 @@ def rbac(usertype,nickname,badge):
 @app.route('/index')
 @test_login
 def index(usertype,nickname,badge):
+    username = request.cookies.get('username',None)
     return render_template('pages/index.html',**locals())
 
 @app.route('/cmdb')
@@ -167,9 +120,9 @@ def cmdb(usertype,nickname,badge):
     total = query_db("select count(1) from ops_machine;")[0][0]
     kvm = query_db("select count(1) from ops_machine where hardmodel like '%VM%';")[0][0]
     others = total - kvm
-    print total,kvm
+    # print total,kvm
     kvmp = kvm * 100 / total
-    print kvmp
+    # print kvmp
     othersp = 100 - kvmp
 
     cn_w = query_db("select count(1) from ops_machine where idc like '%北京%' and hardmodel not like '%VM%';")[0][0]
@@ -185,22 +138,12 @@ def cmdb(usertype,nickname,badge):
 
     return render_template('pages/cmdb.html',**locals()) #cmdb
 
-def empty():
-    esql = 'select app_id from ops_application where app_name="空机器";'
-    eid = query_db(esql)[0][0]
-    nsql = 'select app_id from ops_application where app_name="未知机器";'
-    nid = query_db(nsql)[0][0]
-    a = query_db('select count(1) from (select distinct ip from ops_instance)a ;')[0][0]
-    b = query_db('select count(1) from ops_machine; ')[0][0]
-    print a,b,eid,nid
-
-    modify_db('delete from ops_instance where app_id = '+str(eid)+' or app_id = '+str(nid)+' ;')
-    modify_db('insert into ops_instance(app_id,ip,port,status) (select "'+str(eid)+'",in_ip,"","空" from ops_machine where in_ip not in (select ip from ops_instance));')
-    print "1"
-    modify_db('update ops_instance set app_id  =  '+str(nid)+', status = "未知" where ip in ("10.100.54.166","10.100.54.40","10.110.91.143","10.110.91.160","10.110.91.161","10.112.82.11","10.112.82.14","10.112.82.15","10.112.82.17","10.112.82.18","10.112.82.20","10.112.82.23","10.112.82.25","10.112.82.26","10.112.82.8","10.112.83.105","10.112.83.111","10.112.83.121","10.112.83.142","10.112.83.148","10.112.83.156","10.112.83.178","10.120.14.86","10.120.14.96","10.120.34.165","10.120.34.166","10.120.34.171","10.120.34.174","10.120.34.178","10.120.34.182","10.120.34.183","10.120.34.187","10.120.34.188","10.120.34.194","10.120.34.196","10.120.34.201","10.120.34.204","10.120.34.211","10.120.34.213","10.120.34.219","10.120.34.221","10.120.34.224","10.120.34.225","10.120.34.229","10.120.34.239","10.120.34.240","10.120.34.244","10.120.34.245","10.120.34.254","10.120.35.0","10.120.35.10","10.120.35.104","10.120.35.105","10.120.35.113","10.120.35.119","10.120.35.121","10.120.35.122","10.120.35.129","10.120.35.135","10.120.35.14","10.120.35.140","10.120.35.146","10.120.35.153","10.120.35.156","10.120.35.16","10.120.35.160","10.120.35.162","10.120.35.163","10.120.35.167","10.120.35.170","10.120.35.175","10.120.35.178","10.120.35.2","10.120.35.24","10.120.35.27","10.120.35.28","10.120.35.29","10.120.35.32","10.120.35.35","10.120.35.45","10.120.35.46","10.120.35.48","10.120.35.57","10.120.35.65","10.120.35.68","10.120.35.69","10.120.35.7","10.120.35.73","10.120.35.76","10.120.35.81","10.120.35.84","10.120.35.88","10.120.35.95","10.120.35.97","10.120.58.127","10.120.9.101","10.120.9.102","10.121.140.101","10.121.140.102","10.121.140.104","10.121.140.105","10.","10.","10.","10.","10.121.140.107","10.121.140.109","10.121.140.110","10.121.140.111","10.121.140.112","10.121.140.113","10.121.140.114","10.121.140.115","10.121.140.116","10.121.140.117","10.121.140.118","10.121.140.119","10.121.140.120","10.121.140.122","10.121.140.123","10.121.140.124","10.121.140.125","10.121.140.126","10.121.140.127","10.121.140.128","10.121.140.129","10.","10.","10.130","10.121.140.131","10.121.140.132","10.121.140.133","10.121.140.134","10.121.140.135","10.121.140.136","10.","10.140.137","10.121.140.138","10.121.140.139","10.121.140.140","10.121.140.141","10.121.140.142","10.121.140.143","10.121.140.144","10.121.140.145","10.121.140.146","10.121.140.147","10.121.140.148","10.121.140.149","10.121.140.151","10.121.140.152","10.121.140.153","10.121.140.154","10.121.140.155","10.121.140.156","10.121.140.157","10.121.140.158","10.121.140.159","10.121.140.160","10.121.140.161","10.121.140.162","10.121.140.163","10.121.140.164","10.121.140.165","10.121.140.166","10.121.140.167","10.121.140.168","10.121.140.169","10.121.140.170","10.121.140.171","10.121.140.172","10.121.140.173","10.121.140.174","10.121.140.175","10.121.140.176","10.121.140.177","10.121.140.178","10.121.140.179","10.121.140.180","10.121.140.181","10.121.140.182","10.121.140.183","10.121.140.184","10.121.140.185","10.121.140.186","10.121.140.187","10.121.140.56","10.121.140.59","10.121.140.60","10.121.140.61","10.","10.","10.62","10.121.140.63","10.121.140.64","10.","10.140.65","10.121.140.67","10.121.140.68","10.121.140.69","10.121.140.70","10.121.140.71","10.","10.","40.72","10.121.140.73","10.121.140.74","10.121.140.75","10.121.140.76","10.121.140.77","10.121.140.78","10.121.140.79","10.121.140.80","10.121.140.81","10.121.140.82","10.121.140.83","10.121.140.84","10.121.140.86","10.121.140.87","10.121.140.88","10.121.140.89","10.121.140.90","10.121.140.92","10.121.140.93","10.121.140.94","10.121.140.95","10.121.140.96","10.121.140.97","10.121.140.98","10.121.140.99","10.121.145.139","10.121.145.140","10.121.145.153","10.121.145.154","10.121.145.155","10.121.145.219","10.121.145.220","10.121.4.10","10.121.4.11","10.121.4.12","10.121.4.13","10.121.4.14","10.121.4.15","10.121.4.16","10.121.4.17","10.121.4.18","10.121.4.19","10.121.4.20","10.121.4.21","10.121.4.22","10.121.4.23","10.121.4.24","10.121.4.25","10.121.4.26","10.121.4.27","10.121.4.28","10.121.4.29","10.121.4.30","10.121.4.39","10.121.4.40","10.121.4.50","10.121.4.59","10.121.4.61","10.127.91.45","10.127.91.46","10.127.91.47","10.127.91.48","10.127.91.49","10.135.80.123","10.135.80.47","10.140.70.101","10.140.70.102","10.140.70.103","10.140.70.106","10.140.70.107","10.140.70.108","10.148.15.164","10.148.15.165","10.148.15.201","10.148.15.202","10.148.15.203","10.148.15.204","10.148.15.206","10.148.15.207","10.148.15.208","10.148.15.209","10.148.15.210","10.","10.","5.211","10.148.15.212","10.148.15.213","10.148.15.214","10.148.15.215","10.148.15.216","10.148.15.217","10.148.15.218","10.148.15.219","10.148.15.220","10.148.15.223","10.148.15.224","10.148.15.225","10.148.15.226","10.148.15.227","10.148.15.228","10.148.15.229","10.148.15.230","10.148.15.231","10.148.16.35","10.148.16.36","10.148.16.37","10.148.16.38","10.148.16.39","10.148.16.40","10.148.16.41","10.148.16.42","10.149.11.164","10.149.11.165","10.150.120.193","10.154.157.123","10.154.157.124","10.154.157.125","10.154.157.130","10.154.157.137","10.154.240.142","10.154.250.19","10.154.252.119","10.154.80.15","10.154.80.158","10.","10.","0.16","10.154.80.17","10.154.80.18","10.154.81.14","10.154.81.156","10.154.81.164","10.154.81.167","10.154.81.185","10.154.81.189","10.154.81.19","10.154.81.193","10.154.81.194","10.154.81.197","10.154.81.201","10.154.81.40","10.154.81.42","10.154.81.86","10.154.82.15","10.154.83.154","10.176.80.203","10.176.81.180","10.176.81.229","10.176.81.234","10.176.81.32","10.180.1.136","10.","12.63.25","10.182.63.29","10.182.63.65","10.182.63.66","10.182.63.74") and app_id = '+str(eid)+';')
 @app.route('/app_list',methods=['POST', 'GET']) #服务列表
 @test_login
 def app_list(usertype,nickname,badge):
+    username = request.cookies.get('username')
+    org_name = leader(username)[1].split("@")[0]
+    # print org_name
     location = request.args.get('location','大陆')
     env =  request.args.get('env','生产')
     terminal =  request.args.get('terminal','%')
@@ -217,6 +160,8 @@ def app_list(usertype,nickname,badge):
         modify_db(deleteappsql)
         deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
         modify_db(deleteinssql)
+        deleterelsql = 'delete from rel_operate where app_id = '+de_id+'; '
+        modify_db(deleterelsql)
         qw = empty()
         result = "ok"
     if mohu:
@@ -231,7 +176,8 @@ def app_list(usertype,nickname,badge):
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal limit 20;"
         #print applicationsql
     elif usertype == 'guest':
-        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id group by app_name,location,env,terminal order by location,app_name,env,terminal;"
+        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
+                     "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
     applicationinfo = query_db(applicationsql)
     machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip  group by app_id,idc;"
     machineinfo = query_db(machinesql)
@@ -269,8 +215,8 @@ def app_update(usertype,nickname,badge):
     port = request.values.get('port','')
     set_id = request.values.get('set_id','')
     off_id = request.values.get('off_id','')
-    print "#add:",add
-    print "#checkbox_list:",checkbox_list
+    # print "#add:",add
+    # print "#checkbox_list:",checkbox_list
     if set_id:
         setsql = 'update ops_instance set status = "" where ins_id = '+str(set_id)+';'
         result = modify_db(setsql)
@@ -293,7 +239,7 @@ def app_update(usertype,nickname,badge):
                  '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" where app_id='+str(app_id)+';'
         #print updatesql
         result = modify_db(updatesql)
-        print "#1 result:", result
+        # print "#1 result:", result
     if add:
         iplist = IP.split(',')
         no_ip = ''
@@ -320,48 +266,24 @@ def app_update(usertype,nickname,badge):
         return abort(403)
 
     return render_template('pages/app_update.html',**locals())
-# @app.route('/ajax/showclasstodb_auth',methods=['GET','POST'])
-# def ajax():
-#     username=request.form['username']
-#     password=request.form['password']
-#     if password:
-#          #print "password",password
-#          http = "https://oauth.lecloud.com/nopagelogin?&ldap=true&username="+username+"&password="+password
-#          d=requests.get('%s' % http).text
-#          print d
-#          info = json.loads(d)
-#          #print type(info)
-#          try:
-#             if info['client_id']:
-#                 redirect_to_index = redirect('/')
-#                 resp = make_response(redirect_to_index)
-#                 resp.set_cookie('username',value=username,max_age=36000)
-#                 #return resp
-#                 a='OK'
-#                 return json.dumps(a)
-#             else:
-#                 resp='ERROR'
-#                 return json.dumps(resp)
-#          except:
-#             resp='ERROR'
-#             return json.dumps(resp)
+
 @app.route('/myapp_list') #我的申请列表
 @test_login
 def myapp_list(usertype,nickname,badge):
     result = request.args.get('result','')
-    print "#result:",result
+    page = request.args.get('page','')
+
+    # print "#result:",result
     if usertype == 'admin':
-        sql = 'select * from ops_app_apply order by createtime desc;'
+        sql = 'select * from ops_app_apply order by FIELD(`status`,"待执行"),createtime desc;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败"),apply_time desc;'
+
     else:
         sql = 'select * from ops_app_apply where developer="'+nickname+'" order by createtime desc;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id and applyer="'+nickname+'" order by FIELD(`bstatus`,"执行中","待执行","已失败","已驳回","已完成"),apply_time desc;'
+
     info = query_db(sql)
-    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
-    listnum = query_db(listsql)[0][0]
-    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
-    approvenum = query_db(approvesql)[0][0]
-    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
-    actionnum = query_db(actionsql)[0][0]
-    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
+    info1 = query_db(sql1)
 
     return render_template('pages/myapp_list.html',**locals())
 
@@ -404,6 +326,7 @@ def myapp_apply(usertype,nickname,badge):
     info = json.loads(req)
     p_nickname = info['objects']['p_nickname']
     p_email = info['objects']['p_email']
+    org_name = p_email.split('@')[0]
     if request.method == 'POST':
         project_name = request.values.get('project_name','')
         app_name = request.values.get('app_name','')
@@ -431,52 +354,41 @@ def myapp_apply(usertype,nickname,badge):
         createtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         phone = request.values.get('phone','')
         note = request.values.get('note','')
-        status = "待审批"
-        checksql = 'select id from ops_app_apply where app_name="'+app_name+'" and location="'+location+'" and env="'+env+'" and terminal="'+terminal+'"; '
+        status = "待执行"
+        checksql = 'select id from ops_app_apply where app_name="'+app_name+'" and location="'+location+'" and env="'+env+'" and terminal="'+terminal+'" and status !="已完成"; '
         checkinfo = query_db(checksql)
         checksql2 = 'select app_id from ops_application where app_name="'+app_name+'" and location="'+location+'" and env="'+env+'" and terminal="'+terminal+'"; '
         checkinfo2 = query_db(checksql2)
-        #print checkinfo
+        # print checkinfo2
         mode =  request.values.get('mode','')
         id = request.values.get('id','')
 
         if app_name and not checkinfo2:
             if checkinfo:
-                result = "该应用已添加过,请更换应用名..."
+                result = "该应用正在审批,请不要重复提交..."
                 #print result
-            if mode and id:
+            elif mode and id:
                 updatesql = 'update ops_app_apply set project_name="'+project_name+'",app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type="'+app_type+'",' \
                     ' domain="'+domain+'",container="'+container+'", instance_mem="'+instance_mem+'G", machine_num="'+machine_num+'台", slave="'+slave+'", machine_status="'+machine_status+'", same_app_name' \
                     '="'+same_app_name+'", function="'+function+'", url="'+url+'", common_server="'+common_server+'", createtime="'+createtime+'", phone="'+phone+'", note="'+note+'", status="'+status+'" where id='+id+';'
                 result = modify_db(updatesql)
-                print result
+                # print result
                 return redirect(url_for('myapp_list',result=result))
 
-            elif checkinfo:
-                result = "该应用已添加过,请更换应用名..."
-                print result
 
             else:
                 applysql = 'insert into ops_app_apply values("","'+project_name+'","'+app_name+'","'+location+'","'+env+'","'+terminal+'","'+app_type+'","'+domain+'","'+container+'","'+instance_mem+'G","'+machine_num+'台","'+slave+'",' \
-                    '"'+machine_status+'","'+same_app_name+'","'+function+'","'+url+'","'+common_server+'","'+nickname+'","'+createtime+'",null,null,"'+p_nickname+'","'+phone+'","'+status+'","'+note+'",null,null,null,null);'
-                print phone,applysql
+                    '"'+machine_status+'","'+same_app_name+'","'+function+'","'+url+'","'+common_server+'","'+nickname+'","'+createtime+'",null,null,"'+org_name+'","'+phone+'","'+status+'","'+note+'",null,null,null,null);'
+                # print phone,applysql
                 n = modify_db(applysql)
-                print n
+                # print n
                 if n == 1:
                     result = "提交成功..."
                 else:
                     result = "提交失败..."
 
         else:
-            return abort(403)
-        listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
-        listnum = query_db(listsql)[0][0]
-        approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
-        approvenum = query_db(approvesql)[0][0]
-        actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
-        actionnum = query_db(actionsql)[0][0]
-        badge = {'list':listnum,'approve':approvenum,'action':actionnum}
-
+            result = "该应用已添加过,请更换应用名..."
 
     return render_template('pages/myapp_apply.html',**locals())
 
@@ -488,35 +400,30 @@ def myapp_approve(usertype,nickname,badge):
         leader_note = request.values.get('leader_note','')
         check_id = request.values.get('check_id','')
         times_id =  request.values.get('times_id','')
-        print "#leader_note",leader_note
+        # print "#leader_note",leader_note
         if check_id:
             checksql = 'update ops_app_apply set status = "待执行",leader_note = "'+leader_note+'",approvetime="'+approvetime+'" where id='+check_id+';'
-            print checksql
+            # print checksql
             result = modify_db(checksql)
         if times_id:
             timessql = 'update ops_app_apply set status = "已驳回",leader_note = "'+leader_note+'",approvetime="'+approvetime+'" where id='+times_id+';'
-            print timessql
+            # print timessql
             result = modify_db(timessql)
     if usertype == 'admin':
         sql = 'select * from ops_app_apply order by createtime desc;'
     else:
         sql = 'select * from ops_app_apply where leader="'+nickname+'" order by createtime desc;'
     info = query_db(sql)
-    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
-    listnum = query_db(listsql)[0][0]
-    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
-    approvenum = query_db(approvesql)[0][0]
-    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
-    actionnum = query_db(actionsql)[0][0]
-    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
     return render_template('pages/myapp_approve.html',**locals())
 
 @app.route('/myapp_action',methods=['POST', 'GET']) #我的执行
 @test_login
 def myapp_action(usertype,nickname,badge):
+    page = request.args.get('page','')
     if request.method == 'POST':
         dotime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         approvetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        page = request.values.get('page','')
         IP = request.values.get('IP','')
         port = request.values.get('port','')
         slaveIP = request.values.get('slaveIP','')
@@ -524,13 +431,6 @@ def myapp_action(usertype,nickname,badge):
         check_id = request.values.get('check_id','')
         times_id =  request.values.get('times_id','')
         if check_id:
-            applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime) (select app_name,location,' \
-                        'env,terminal,container,domain,app_type,developer,function,dotime from ops_app_apply where id='+check_id+');'
-            modify_db(applicationsql)
-            app_idsql = 'select app_id from ops_application a,ops_app_apply b where a.app_name=b.app_name and a.location=b.location and a.env=b.env and  a.terminal=b.terminal and id ='+check_id+';'
-            app_id = query_db(app_idsql)[0][0]
-            #print "#app_id",app_id
-
             #判断新增IP是否在CMDB存在
             iplist = IP.split(',')
             #print iplist
@@ -543,35 +443,72 @@ def myapp_action(usertype,nickname,badge):
             if no_ip:
                 result = "no_ip"
             else:
+                applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime,org_name) (select app_name,location,' \
+                        'env,terminal,container,domain,app_type,developer,function,dotime,leader from ops_app_apply where id='+check_id+');'
+                modify_db(applicationsql)
+                app_idsql = 'select app_id,a.app_name,a.container from ops_application a,ops_app_apply b where a.app_name=b.app_name and a.location=b.location and a.env=b.env and  a.terminal=b.terminal and id ='+check_id+';'
+                app_id = query_db(app_idsql)[0][0]
+                #print "#app_id",app_id
+                rel_sql = "insert into rel_operate(app_id) values("+str(app_id)+");"
+                modify_db(rel_sql)
                 for i in iplist:
                     instancesql = 'insert into ops_instance(app_id,ip,port,status) values('+str(app_id)+',"'+i+'",'+str(port)+',""); '
                     modify_db(instancesql)
-                    empty()
+                empty()
                 checksql = 'update ops_app_apply set status = "已完成",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+check_id+';'
                 #print checksql
                 result = modify_db(checksql)
-            if slaveIP:
-                statussql = 'update ops_instance set status = "备" where app_id ='+str(app_id)+' and ip = "'+slaveIP+'"; '
-                #print statussql
-                result = modify_db(statussql)
+                if slaveIP:
+                    statussql = 'update ops_instance set status = "备" where app_id ='+str(app_id)+' and ip = "'+slaveIP+'"; '
+                    #print statussql
+                    result = modify_db(statussql)
+                #安装tomcat
+                ipsql = 'select ip,port from ops_instance where app_id ='+str(app_id)+';'
+                ipinfo = query_db(ipsql)
+                app_name = query_db(app_idsql)[0][1]
+                container = query_db(app_idsql)[0][2]
+                if container == "tomcat":
+                    method = "software"
+                    ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+                    thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
         if times_id:
-            timessql = 'update ops_app_apply set status = "已驳回 ",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
+            timessql = 'update ops_app_apply set status = "驳回 ",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
             #print timessql
             result = modify_db(timessql)
+    else:
+        yes_id = request.values.get('yes_id','')
+        no_id = request.values.get('no_id','')
+        operate_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        if yes_id and usertype == "admin":
+            modify_db('update rel_apply set status = "执行中" where id = '+str(yes_id)+';')
+            app_sql = "select app_id,svn,version,type from rel_apply where id = "+str(yes_id)+";"
+            app_id = query_db(app_sql)[0][0]
+            app_name = query_db('select app_name from ops_application where app_id ='+str(app_id)+';')[0][0]
+            app_svn = int(str(query_db(app_sql)[0][1]).split('_')[0])+1
+            app_type = query_db(app_sql)[0][3]
+            ipsql = 'select ip,port,status from ops_instance where app_id = '+str(app_id)+';'
+            ipinfo = query_db(ipsql)
+            # print type(ipinfo)
+            method = "publish"
+            ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id}
+            # print "ask:",app_svn,app_type
+            thread.start_new_thread(curl, (method,ask,yes_id,nickname,app_id))
+            return redirect(url_for('process',id=yes_id))
+
+        if no_id and usertype == "admin":
+            nosql = 'update rel_apply set status = "已驳回",operate_time="'+operate_time+'",operator="'+nickname+'" where id='+no_id+';'
+            result = modify_db(nosql)
 
     if usertype == 'admin':
-        sql = 'select * from ops_app_apply order by createtime desc;'
+        sql = 'select * from ops_app_apply order by  FIELD(`status`,"待执行"),createtime desc;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败"),apply_time desc;;'
+
         info = query_db(sql)
+        info1 = query_db(sql1)
+
     else:
         return abort(403)
-    listsql = 'select count(1) from ops_app_apply where developer="'+nickname+'" and status !="已完成"; '
-    listnum = query_db(listsql)[0][0]
-    approvesql = 'select count(1) from ops_app_apply where  leader="'+nickname+'" and status = "待审批";'
-    approvenum = query_db(approvesql)[0][0]
-    actionsql = 'select count(1) from ops_app_apply where status = "待执行";;'
-    actionnum = query_db(actionsql)[0][0]
-    badge = {'list':listnum,'approve':approvenum,'action':actionnum}
 
     return render_template('pages/myapp_action.html',**locals())
 
@@ -588,9 +525,9 @@ def rel_config(usertype,nickname,badge):
         result = modify_db(delsql)
 
     sql = 'select * from rel_config where location like "%'+location+'%" and env like "%'+env+'%" and type like "%'+type+'%" and conf_key like "%'+word+'%";'
-    print sql
+    # print sql
     info = query_db(sql)
-    print info,location,env,type,word
+    # print info,location,env,type,word
     return render_template('pages/rel_config.html',**locals())
 
 @app.route('/rel_conf_add',methods=['POST', 'GET'])  #新增KEY
@@ -601,12 +538,12 @@ def rel_conf_add(usertype,nickname,badge):
     type = request.values.get('type','')
     conf_value = request.values.get('conf_value','')
     conf_key = request.values.get('conf_key','')
-    print location,env,conf_value,conf_key
+    # print location,env,conf_value,conf_key
     if conf_key:
         insertsql = 'insert into rel_config values("","'+conf_key+'","'+conf_value+'","'+location+'","'+env+'","'+type+'");'
-        print insertsql
+        # print insertsql
         result = modify_db(insertsql)
-        print result
+        # print result
     return render_template('pages/rel_conf_add.html',**locals())
 
 @app.route('/rel_conf_update',methods=['POST', 'GET'])  #新增KEY
@@ -618,16 +555,323 @@ def rel_conf_update(usertype,nickname,badge):
     conf_value = request.values.get('conf_value','')
     conf_key = request.values.get('conf_key','')
     id = request.args.get('id','')
-    print location,env,type,conf_value,conf_key,id
+    # print location,env,type,conf_value,conf_key,id
     if conf_key:
         updatesql = 'update rel_config set location = "'+location+'",env = "'+env+'",type = "'+type+'",conf_key = "'+conf_key+'",conf_value = "'+conf_value+'" where id = '+id+';'
-        print updatesql
+        # print updatesql
         result = modify_db(updatesql)
-        print result
+        # print result
     sql = 'select * from rel_config where id ='+id+';'
     info = query_db(sql)
 
     return render_template('pages/rel_conf_update.html',**locals())
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+@app.route('/app_info',methods=['POST', 'GET'])  #服务基本信息
+@test_login
+def app_info(usertype,nickname,badge):
+
+    username = request.cookies.get('username')
+    app_id = request.args.get('app_id','')
+    app_name = request.values.get('app_name','')
+    location = request.values.get('location','')
+    env = request.values.get('env','')
+    terminal = request.values.get('terminal','')
+    app_type = request.values.get('app_type','')
+    domain = request.values.get('domain','')
+    container = request.values.get('container','')
+    function = request.values.get('function','')
+    url = request.values.get('url','')
+    developer = request.values.get('developer','')
+    org_name = request.values.get('org_name','')
+    app_id = request.values.get('app_id','')
+    mode = request.values.get('mode','')
+    ins_id = request.values.get('ins_id','')
+    checkbox_list = request.values.getlist('checkbox_list')
+    add =  request.values.get('add','')
+    IP = request.values.get('IP','')
+    port = request.values.get('port','')
+    set_id = request.values.get('set_id','')
+    off_id = request.values.get('off_id','')
+    # print "#add:",add
+    # print "#checkbox_list:",checkbox_list
+    if set_id:
+        setsql = 'update ops_instance set status = "" where ins_id = '+str(set_id)+';'
+        result = modify_db(setsql)
+    if off_id:
+        offsql = 'update ops_instance set status = "备" where ins_id = '+str(off_id)+';'
+        result = modify_db(offsql)
+    if ins_id:
+        deletesql = 'delete from ops_instance where ins_id = '+str(ins_id)+';'
+        result = modify_db(deletesql)
+        empty()
+        #print deletesql
+    if checkbox_list:
+        for i in checkbox_list:
+            deletesql = 'delete from ops_instance where ins_id = '+str(i)+';'
+            #print deletesql
+            result = modify_db(deletesql)
+            empty()
+    if mode:
+        updatesql = 'update ops_application set app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type' \
+                 '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" ,org_name="'+org_name+'" where app_id='+str(app_id)+';'
+        #print updatesql
+        result = modify_db(updatesql)
+        # print "#1 result:", result
+    if add:
+        iplist = IP.split(',')
+        no_ip = ''
+        for i in iplist:
+            selectsql = 'select count(1) from ops_machine where in_ip ="'+i+'";'
+            n = query_db(selectsql)[0][0]
+            if n == 0:
+                no_ip = no_ip +","+ i
+        if no_ip:
+            result = "no_ip"
+        else:
+            ipinfo = []
+            for i in iplist:
+                instancesql = 'INSERT INTO ops_instance(app_id,ip,port,status) SELECT '+str(app_id)+', "'+i+'",'+str(port)+',"" FROM DUAL WHERE NOT' \
+                              ' EXISTS(SELECT app_id FROM ops_instance WHERE app_id='+str(app_id)+' and ip="'+i+'" and port='+str(port)+');'
+                result = modify_db(instancesql)
+                ipinfo.append([i,port])
+            # print "ipinfo",ipinfo
+            empty()
+            #安装tomcat
+            appsql = 'select app_name,container from ops_application where app_id ='+str(app_id)+';'
+            appinfo = query_db(appsql)
+            app_name = appinfo[0][0]
+            container = appinfo[0][1]
+            if container == "tomcat":
+                method = "software"
+                ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+                thread.start_new_thread(curl, (method,ask,"",nickname,""))
+
+    if app_id:
+        querysql = 'select * from ops_application where app_id ='+app_id+';'
+        info = query_db(querysql)[0]
+        IPsql = 'select ip,port,status,idc,cpu,mem,disk,ins_id from ops_instance a,ops_machine b where ip=in_ip and app_id ='+app_id+' order by ip,status,port;'
+        IPinfo = query_db(IPsql)
+    else:
+        return abort(403)
+
+    return render_template('pages/app_info.html',**locals())
+
+
+@app.route('/app_action',methods=['POST', 'GET'])  #服务操作
+@test_login
+def app_action(usertype,nickname,badge):
+    app_id = request.args.get('app_id','')
+    appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
+    logname = 'action_'+query_db(appsql)[0][0]+'.log'
+    os.system('rm -f '+work_path+logname )
+    if app_id:
+        IPsql = 'select ip,port,status,idc,cpu,mem,disk,ins_id from ops_instance a,ops_machine b where ip=in_ip and app_id ='+app_id+' order by ip,status,port;'
+        IPinfo = query_db(IPsql)
+    else:
+        return abort(403)
+    return render_template('pages/app_action.html',**locals())
+
+@app.route('/soft_install',methods=['POST', 'GET'])  #发版
+@test_login
+@test_admin
+def soft_install(usertype,nickname,badge):
+    app_id = request.args.get("app_id","")
+    appsql = 'select app_name,location,env,terminal from ops_application where app_id ='+str(app_id)+';'
+    appinfo = query_db(appsql)
+    app_name = appinfo[0][0]
+    type = request.values.get('type','')
+    checkbox_list = request.values.getlist('checkbox_list')
+    id_list = ','.join(checkbox_list)
+    sql = 'select * from ops_instance where app_id='+app_id+';'
+    info = query_db(sql)
+    if type:
+        ipsql = 'select ip,port from ops_instance where ins_id in ('+str(id_list)+');'
+        ipinfo = query_db(ipsql)
+        ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":type}
+        print ask
+        url = "http://10.182.63.65:8888/software"
+        r = requests.post(url,data = ask)
+        print r.text
+        result =  r.text.split(":")[-1]
+    url = "http://10.182.63.65:8888/software_check"
+    ask = {"ipinfo":str(info),"software":"tomcat","app_name":app_name}
+
+    r = requests.post(url,data = ask)
+    statusinfo = eval(r.text)
+    info_new = []
+    for i in info:
+        for n in statusinfo:
+            if i[0] == n[0]:
+                list = [i[0],i[1],i[2],i[3],i[4],n[1]]
+                info_new.append(list)
+
+    return render_template('pages/soft_install.html',**locals())
+
+
+@app.route('/rel_list',methods=['POST', 'GET'])  #发版
+@test_login
+def rel_list(usertype,nickname,badge):
+    apply_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    svn  = request.values.get('svn','').strip('/')
+    backup_id  = request.values.get('backup_id','')
+    type = request.values.get('app_type','')
+    location = request.args.get('location','大陆')
+    env =  request.args.get('env','生产')
+    terminal =  request.args.get('terminal','%')
+    # print "#type:",type,svn
+    word =  request.args.get('word','')
+    word1 =  request.args.get('word','')
+    mohu = request.args.get('mohu','')
+    apply_note  = request.values.get('apply_note','')
+    publish_id  = request.values.get('publish_id','')
+    rollback_id  = request.values.get('rollback_id','')
+
+    if publish_id:
+        # print publish_id
+        version = svn.strip('/').split('/')[-1]
+        check = query_db('select count(1) from rel_apply where app_id = '+str(publish_id)+' and status in ("待执行","已失败");')
+        if check[0][0] != 0:
+            result = 2
+        else:
+            applysql = 'insert into rel_apply(app_id,type,version,svn,applyer,apply_time,apply_note,status) ' \
+                   'values('+str(publish_id)+',"'+type+'","'+str(version)+'","'+svn+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
+            result = modify_db(applysql)
+    if rollback_id:
+        # print rollback_id,backup_id
+        version = str(backup_id).split('_')[-1]
+        check = query_db('select count(1) from rel_apply where app_id = '+str(rollback_id)+' and status in ("待执行","已失败");')
+        if check[0][0] != 0:
+            result = 2
+        else:
+            applysql = 'insert into rel_apply(app_id,type,version,svn,applyer,apply_time,apply_note,status) ' \
+                   'values('+str(rollback_id)+',"'+type+'","'+str(version)+'","'+backup_id+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
+            result = modify_db(applysql)
+    if mohu:
+        word = '%'+word+'%'
+    if word:
+        infosql = "select app_name,location,env,terminal,a.svn,version,operate_time,operator,note,b.status,b.app_id,container,domain,app_type,developer,function,url from ops_application a,rel_operate b where" \
+              " a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' and app_name like '"+word+"';"
+    else:
+        infosql = "select app_name,location,env,terminal,a.svn,version,operate_time,operator,note,b.status,b.app_id,container,domain,app_type,developer,function,url from ops_application a,rel_operate b where" \
+              " a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' limit 20;"
+    info = query_db(infosql)
+    rel_applysql = 'select id,app_id,operate_time,version from rel_apply where status = "已完成" order by operate_time desc limit 6;'
+    rel_applyinfo = query_db(rel_applysql)
+    # print info
+    return render_template('pages/rel_list.html',**locals())
+
+@app.route('/send_cmd',methods=['POST', 'GET'])  #clush命令接口
+@test_login
+def send_cmd(usertype,nickname,badge):
+    if usertype == 'admin':
+        app_id = request.args.get('app_id','')
+        cmd = request.args.get('cmd','')
+        ipssql = 'select ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and a.app_id='+str(app_id)+';'
+        info = query_db(ipssql)
+        # print cmd,app_id
+        for i in info:
+            if i[2] == '备':
+                print i
+        ips = ','.join([x[0] for x in query_db(ipssql)])
+
+        appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
+        logname = 'action_'+query_db(appsql)[0][0]+'.log'
+        if cmd:
+            clush_cmd = 'ssh root@10.182.63.65 \'clush -w "'+ips+'" "'+cmd+'"\' >> '+work_path+logname+' 2>&1'
+            a = os.system(clush_cmd)
+        return str(a)
+
+@app.route('/rizhi',methods=['POST', 'GET'])  #rizhi
+@test_login
+@test_admin
+def rizhi(usertype,nickname,badge):
+    app_id = request.args.get('app_id','')
+    nownum = request.args.get('nownum','')
+    appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
+    logname = work_path+'action_'+query_db(appsql)[0][0]+'.log'
+    rizhi = open(logname,'r')
+    if nownum != 0 :
+        rizhi.seek(int(nownum))
+    rizhiinfo = rizhi.read()
+    nownum = rizhi.tell()
+    rzinfo = str(nownum)+"^^^"+rizhiinfo
+    rizhi.close()
+    return rzinfo
+
+
+
+
+
+
+@app.route('/publish',methods=['POST', 'GET'])  #clush命令接口
+@test_login
+@test_admin
+def publish(usertype,nickname,badge):
+    id = request.args.get('id','')
+    # print id
+    time.sleep(5)
+    # print id
+    return "ok"
+
+@app.route('/zhuangtai',methods=['POST', 'GET'])
+@test_login
+@test_admin
+def zhuangtai(usertype,nickname,badge):
+    id = request.args.get('id','')
+    sql = 'select id,status from rel_apply;'
+    info = query_db(sql)
+    dict = {}
+    for i in info:
+        dict[i[0]] = i[1]
+    # print dict,"---",type(dict)
+    # info = json.dumps(info)
+    return jsonify(dict)
+
+
+
+@app.route('/process')
+@test_login
+def process(usertype,nickname,badge):
+    id = request.args.get('id','')
+    # print "##id",id
+    # print prenum
+    sql = 'select * from ops_application a,rel_apply b where a.app_id=b.app_id and id='+str(id)+';'
+    info = query_db(sql)
+    publishsql = 'select * from rel_publish where rel_id ='+str(id)+' order by status;'
+    publishinfo = query_db(publishsql)
+    if publishinfo:
+        total = len(publishinfo)
+        done = 0
+        for i in publishinfo:
+            if i[4] == '完成':
+                done += 1
+        percent = done * 100 / total
+    return render_template('pages/process.html',**locals())
+
+@app.route('/rel_publish',methods=['POST', 'GET'])
+
+def rel_publish():
+    rel_id = request.values.get('rel_id','')
+    ip = request.values.get('ip','')
+    port = request.values.get('port','')
+    status = request.values.get('status','')
+    # type = request.values.get('type','')
+    now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    # print "#rel_id:",rel_id
+    checksql = 'select 1 from rel_publish where rel_id = '+rel_id+' and ip = "'+ip+'" and port = '+port+';'
+    check = query_db(checksql)
+    # print checksql,check
+    if check:
+        publishsql = 'update rel_publish set status = "'+status+'",finish_time = "'+now_time+'" where rel_id= '+rel_id+' and ip = "'+ip+'" and port = '+port+';'
+    else:
+        publishsql = 'insert into rel_publish(rel_id,ip,port,start_time,finish_time,status) values('+rel_id+',"'+ip+'",'+port+',"'+now_time+'","'+now_time+'","'+status+'");'
+    # print publishsql
+    result = modify_db(publishsql)
+    # print publishsql
+    return "ok"
+#-----------------------------------------------------------------------------------------------------------------------
 
 #脚本调用接口
 @app.route('/query',methods=['POST', 'GET'])
@@ -637,7 +881,7 @@ def query():
         location = request.values.get('b','大陆')
         env = request.values.get('c','生产')
         ip = request.values.get('ip','')
-        dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港"}
+        dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","":"俄罗斯"}
         if location in dict1.keys():
             location = dict1[location]
         dict2 = {"sc":"生产","cs":"测试","yw":"运维","kf":"开发","yc":"压测","yl":"预览"}

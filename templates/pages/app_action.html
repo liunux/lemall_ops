@@ -1,0 +1,203 @@
+{% extends 'base2.html' %}
+{% block content %}
+
+<div id="page-wrapper" >
+    <div class="row">
+        <div class="col-lg-12">
+            <h2 class="page-header">日常运维</h2>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+{#<div  class="col-lg-2" style="height:600px;overflow:auto">#}
+{#<div class="table-responsive"  >#}
+{#                                <table class="table table-striped table-bordered table-hover">#}
+{#                                    <thead>#}
+{#                                        <tr>#}
+{#                                            <th>IP</th>#}
+{#                                            <th>port</th>#}
+{#                                        </tr>#}
+{#                                    </thead>#}
+{#                                    <tbody>#}
+{#                                    {% for i in IPinfo %}#}
+{#                                        <tr>#}
+{#                                            <td>{{ i[0] }}</td>#}
+{#                                        <td>{{ i[1] }}</td>#}
+{##}
+{#                                        </tr>#}
+{#                                     {% endfor %}#}
+{#                                    </tbody>#}
+{#                                </table>#}
+{#                            </div>#}
+{#                        </div>#}
+        <!-- /.col-lg-12 -->
+<div  class="col-lg-12">
+
+{#    <div class="row">#}
+{#        <div class="col-lg-2">#}
+{#           <h5 style="float:right;">常用操作:</h5>#}
+{#        </div>#}
+{#    <div class="col-lg-8">#}
+{#   <select class="form-control" id="select">#}
+{#       <option value="restart">重启服务</option>#}
+{#       <option value="stop">停止服务</option>#}
+{#       <option value="start">启动服务</option>#}
+{#   </select>#}
+{#    </div>#}
+{#    <div class="col-lg-2">#}
+{#<button type="button" id="send2" class="btn btn-outline btn-primary confirm_delete" onclick="sendcmd2()" >执行</button>#}
+{#    </div>#}
+{#    </div>#}
+
+    <div class="row">
+        <div class="col-lg-2">
+           <h5 style="float:right;">clush命令:</h5>
+        </div>
+    <div class="col-lg-8">
+    <input class="form-control" id="cmd" name="cmd" placeholder="请输入命令" value="{{ cmd }}">
+    <input  name="app_id" value="{{ app_id }}" hidden="hidden" >
+    <input  name="type_id" value="action" hidden="hidden" >
+
+
+    </div>
+    <div class="col-lg-2">
+<button type="button" id="send" class="btn btn-outline btn-primary confirm_delete" onclick="sendcmd()">执行</button>
+    </div>
+    </div>
+    <div class="row">
+
+
+                        <div class="panel-body" >
+
+<pre id="log" style="height: 450px;overflow:auto;bottom:0px">
+</pre>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+</div>
+    </div>
+    <!-- /.row -->
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+
+    </div>
+
+    <!-- /.row -->
+</div>
+<!-- /#page-wrapper -->
+
+</div>
+<!-- /#wrapper -->
+<!-- jQuery -->
+<script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+<!-- Metis Menu Plugin JavaScript -->
+<script src="/static/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/static/dist/js/sb-admin-2.js"></script>
+
+
+<script language="javascript" type="text/javascript">
+$(document).ready(function(){
+$('#myselect').change(function(){
+var p1=$(this).children('option:selected').val();//这就是selected的值
+if (p1=="空机器") {
+    $("#same_app_name").hide();
+}else{
+    $("#same_app_name").show();
+}
+})
+})
+</script>
+
+
+<script type="text/javascript">
+        $(function() {
+           $("#checkAll").click(function() {
+                $('input[name="checkbox_list"]').prop("checked",this.checked);
+            });
+            var $checkbox_list = $("input[name='checkbox_list']");
+            $checkbox_list.click(function(){
+                $("#checkAll").prop("checked",$checkbox_list.length == $("input[name='checkbox_list']:checked").length ? true : false);
+            });
+        });
+</script>
+
+
+<script>
+        $(' .confirm_delete').click(function(){
+                return confirm("确认要操作吗？");
+        });
+</script>
+
+<script src="/static/js/sweetalert.min.js"></script>
+
+<script>
+var xmlhttp;
+xmlhttp=new XMLHttpRequest();
+nownum = 0;
+function loadXMLDoc()
+{
+  if (xmlhttp.readyState==4 && xmlhttp.status==200 && xmlhttp.responseText!="")
+    {
+    var a = xmlhttp.responseText.split('^^^');
+    nownum = a[0];
+    if (a[1] !="") {
+        document.getElementById("log").innerHTML += a[1];
+        log.scrollTop = 100000;
+    }
+  }
+    var url = '/rizhi?nownum='+nownum+'&app_id={{ app_id }}&type_id=action'
+xmlhttp.open("GET",url,true);
+xmlhttp.send();
+}
+{#setTimeout('loadXMLDoc()',1000); //指定1秒刷新一次#}
+setInterval("loadXMLDoc()",1000);
+</script>
+
+<script>
+function sendcmd() {
+    $('#send').attr('disabled',"true")
+    var cmd;
+    cmd = new XMLHttpRequest();
+    cmd.onreadystatechange=function() {
+        if (cmd.readyState == 4 && cmd.status == 200 && cmd.responseText == 0) {
+           $('#send').removeAttr('disabled')
+        }
+
+    }
+    var cm = $("#cmd").val();
+    var url = '/send_cmd?usertype={{ usertype }}&cmd=' + cm + '&app_id={{ app_id }}';
+    cmd.open("GET", url, true);
+    cmd.send();
+
+}
+</script>
+
+
+{#    <script>#}
+{#function sendcmd2() {#}
+{#    $('#send2').attr('disabled',"true")#}
+{#    var cmd;#}
+{#    cmd = new XMLHttpRequest();#}
+{#    cmd.onreadystatechange=function() {#}
+{#        if (cmd.readyState == 4 && cmd.status == 200 && cmd.responseText == 0) {#}
+{#           $('#send2').removeAttr('disabled')#}
+{#        }#}
+{##}
+{#    }#}
+{#    var cm = $("#select").val();#}
+{#    var url = '/send_cmd?usertype={{ usertype }}&select=' + cm + '&app_id={{ app_id }}';#}
+{#    cmd.open("GET", url, true);#}
+{#    cmd.send();#}
+{##}
+{#}#}
+{#</script>#}
+
+{% endblock %}

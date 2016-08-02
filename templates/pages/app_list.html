@@ -15,7 +15,7 @@
         <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    服务查询
+                    服务查询和修改
                 </div>
                 <!-- /.panel-heading -->
                 <div class="panel-body">
@@ -28,6 +28,8 @@
                                     <option {% if location == "香港" %}selected {% endif %} value="香港">香港</option>
                                     <option {% if location == "美国" %}selected {% endif %} value="美国">美国</option>
                                     <option {% if location == "印度" %}selected {% endif %} value="印度">印度</option>
+                                    <option {% if location == "俄罗斯" %}selected {% endif %} value="俄罗斯">俄罗斯</option>
+
                                 </select></div>
                             <div class="col-sm-2">
                                 <select name="env" class="form-control">
@@ -79,11 +81,11 @@
                                 <th>终端</th>
                                 <th>容器(数量)</th>
                                 <th>域名(nginx)</th>
-                                <th width="70px">服务类型</th>
                                 <th width="70px">开发人员</th>
+                                <th width="70px">开发组</th>
                                 <th width="40px">详细</th>
                                 {% if usertype == 'admin' %}
-                                <th width="40px">修改</th>
+                                <th width="40px">操作</th>
                                 <th width="40px">删除</th>
                                 {% endif %}
                             </tr>
@@ -95,12 +97,12 @@
 <td>{{i[2]}}</td>
 <td>{{i[3]}}</td>
 <td>{{i[4]}}</td>
-<td>{{i[5]}}<font style="color:red">[{{i[15]}}]</font></td>
+<td>{{i[5]}}<font style="color:red">[{{i[16]}}]</font></td>
 <td><a type="button"  data-toggle="collapse" data-target="#{{i[0]}}n">{{i[6]}}</a></td>
-<td>{{i[8]}}</td>
 <td>{{i[9]}}</td>
+<td>{{i[15]}}</td>
 <td align=center><a data-toggle="collapse" data-target="#{{i[0]}}d"><span class="fa fa-plus btn btn-xs "></span></a></td>
-<td align=center><a href="app_update?app_id={{i[0]}}"><span class="glyphicon glyphicon-pencil"></span></a></td>
+<td align=center><a href="app_info?app_id={{i[0]}}"><span class="fa fa-gear"></span></a></td>
 <td align=center><a href="app_list?location={{location}}&env={{env}}&terminal={{terminal}}&word={{word1}}&mohu={{mohu}}&de_id={{i[0]}}" class="confirm_delete"><span class="glyphicon glyphicon-trash"></span></a></td>
 </tr>
 <td colspan="5"><div id="{{i[0]}}"  aria-expanded="false" class="collapse" >
@@ -139,19 +141,20 @@ var clip = new ZeroClipboard( document.getElementById("a{{n[0]}}{{n[1]}}") );
 {% endif %}{% endfor %}
 </div></td>
 <td colspan="5" width="210px" style="word-wrap:break-word;word-break:break-all;"><div id="{{i[0]}}d"  aria-expanded="true" class="collapse" >
+<B>服务类型:</B><br>{{i[8]}}<hr width="100%" />
 <B>功能描述:</B><br>{{i[10]}}<hr width="100%" />
 <B>监控url:</B><br>{{i[11]}}
 </div></td>
 </tr>
-{% elif i[9] == nickname and usertype =="guest"  %}
+{% elif (i[15] == org_name or i[9] == org_name) and usertype =="guest"  %}
 <td><a type="button"  data-toggle="collapse" data-target="#{{i[0]}}">{{i[1]}}</a></td>
 <td>{{i[2]}}</td>
 <td>{{i[3]}}</td>
 <td>{{i[4]}}</td>
-<td>{{i[5]}}<font style="color:red">[{{i[15]}}]</font></td>
+<td>{{i[5]}}<font style="color:red">[{{i[16]}}]</font></td>
 <td><a type="button"  data-toggle="collapse" data-target="#{{i[0]}}n">{{i[6]}}</a></td>
-<td>{{i[8]}}</td>
 <td>{{i[9]}}</td>
+<td>{{i[15]}}</td>
 <td align=center><a type="button" class="fa fa-plus btn" data-toggle="collapse" data-target="#{{i[0]}}d"></a></td>
 </tr>
 <td colspan="5"><div id="{{i[0]}}"  aria-expanded="false" class="collapse" >
@@ -190,6 +193,7 @@ var clip = new ZeroClipboard( document.getElementById("a{{n[0]}}{{n[1]}}") );
 {% endif %}{% endfor %}
 </div></td>
 <td colspan="5" width="210px" style="word-wrap:break-word;word-break:break-all;"><div id="{{i[0]}}d"  aria-expanded="true" class="collapse" >
+<B>服务类型:</B><br>{{i[8]}}<hr width="100%" />
 <B>功能描述:</B><br>{{i[10]}}<hr width="100%" />
 <B>监控url:</B><br>{{i[11]}}
 </div></td>
