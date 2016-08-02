@@ -7,9 +7,11 @@ import re
 #from printColor import *
 import json
 
+work_path = '/Users/linpeng/test/'
+
 def query_db(sql):
     try:
-        conn=MySQLdb.connect(host="10.130.84.211",port=3306,user="res_w",passwd="0Rl8Nxzvyc3kKaVe",db="ops_res",charset="utf8")
+        conn=MySQLdb.connect(host="127.0.0.1",port=3306,user="root",passwd="",db="ops_res",charset="utf8")
         cursor = conn.cursor()
         cursor.execute(sql)
         alldata = cursor.fetchall()
@@ -21,7 +23,7 @@ def query_db(sql):
 
 def modify_db(sql):
     try:
-        conn=MySQLdb.connect(host="10.130.84.211",port=3306,user="res_w",passwd="0Rl8Nxzvyc3kKaVe",db="ops_res",charset="utf8")
+        conn=MySQLdb.connect(host="127.0.0.1",port=3306,user="root",passwd="",db="ops_res",charset="utf8")
         cursor = conn.cursor()
         n = cursor.execute(sql)
         conn.commit()
