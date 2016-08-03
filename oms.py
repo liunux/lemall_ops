@@ -147,8 +147,8 @@ def app_list(usertype,nickname,badge):
     location = request.args.get('location','大陆')
     env =  request.args.get('env','生产')
     terminal =  request.args.get('terminal','%')
-    word =  request.args.get('word','')
-    word1 =  request.args.get('word','')
+    word =  request.args.get('word','').strip()
+    word1 =  request.args.get('word','').strip()
     mohu = request.args.get('mohu','')
     de_id = request.args.get('de_id','')
     app_num = query_db("select count(1) from ops_application  where  location like '"+location+"' and env like '"+env+"';")[0][0]
@@ -296,10 +296,16 @@ def myapp_update(usertype,nickname,badge):
     querysql = 'select * from ops_app_apply where id ='+id+'';
     info = query_db(querysql)[0]
     createtime = str(info[18]).split(" ",1)[0]
-    domain1 = str(info[7]).split(".",1)[0]
-    try:
-        domain2 = str(info[7]).split(".",1)[1]
-    except:
+    domain = str(info[7])
+    if 'shop.letv.com' in domain:
+        domain1 = domain.replace('.shop.letv.com','')
+        domain2 = 'shop.letv.com'
+
+    elif 'lemall.com' in domain:
+        domain1 = domain.replace('.lemall.com','')
+        domain2 = 'lemall.com'
+    else:
+        domain1 = ""
         domain2 = ""
 
 
@@ -365,9 +371,9 @@ def myapp_apply(usertype,nickname,badge):
 
         if app_name and not checkinfo2:
             if checkinfo:
-                result = "该应用正在审批,请不要重复提交..."
+                result = "该应用已提交过,请不要重复提交..."
                 #print result
-            elif mode and id:
+            if mode and id:
                 updatesql = 'update ops_app_apply set project_name="'+project_name+'",app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type="'+app_type+'",' \
                     ' domain="'+domain+'",container="'+container+'", instance_mem="'+instance_mem+'G", machine_num="'+machine_num+'台", slave="'+slave+'", machine_status="'+machine_status+'", same_app_name' \
                     '="'+same_app_name+'", function="'+function+'", url="'+url+'", common_server="'+common_server+'", createtime="'+createtime+'", phone="'+phone+'", note="'+note+'", status="'+status+'" where id='+id+';'
@@ -474,7 +480,7 @@ def myapp_action(usertype,nickname,badge):
                     thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
         if times_id:
-            timessql = 'update ops_app_apply set status = "驳回 ",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
+            timessql = 'update ops_app_apply set status = "已驳回",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
             #print timessql
             result = modify_db(timessql)
     else:
