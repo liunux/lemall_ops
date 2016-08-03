@@ -522,21 +522,26 @@ def myapp_action(usertype,nickname,badge):
 
     return render_template('pages/myapp_action.html',**locals())
 
-@app.route('/rel_config',methods=['POST', 'GET'])  #配置KEY列表
+@app.route('/rel_config',methods=['POST','GET'])  #配置KEY列表
 @test_login
 def rel_config(usertype,nickname,badge):
-    location = request.args.get('location','')
-    env  = request.args.get('env','')
-    type = request.args.get('type','')
-    word = request.args.get('word','')
-    id = request.args.get('id','')
+    location = request.values.get('location','')
+    env  = request.values.get('env','')
+    type = request.values.get('type','')
+    word = request.values.get('word','')
+    id = request.values.get('id','')
     if id:
         delsql = 'delete from rel_config where id= '+id+';'
         result = modify_db(delsql)
 
     sql = 'select * from rel_config where location like "%'+location+'%" and env like "%'+env+'%" and type like "%'+type+'%" and conf_key like "%'+word+'%";'
     # print sql
-    info = query_db(sql)
+    info_1 = query_db(sql)
+    info = []
+    pc = prpcrypt('yj_L]<xQ07zrOqlf')
+    for i in info_1:
+        conf_value = pc.decrypt(i[2])
+        info.append([i[0],i[1],conf_value,i[3],i[4],i[5]])
     # print info,location,env,type,word
     return render_template('pages/rel_config.html',**locals())
 
@@ -549,7 +554,9 @@ def rel_conf_add(usertype,nickname,badge):
     conf_value = request.values.get('conf_value','')
     conf_key = request.values.get('conf_key','')
     # print location,env,conf_value,conf_key
-    if conf_key:
+    if conf_key and conf_value:
+        pc = prpcrypt('yj_L]<xQ07zrOqlf')
+        conf_value = pc.encrypt(conf_value)
         insertsql = 'insert into rel_config values("","'+conf_key+'","'+conf_value+'","'+location+'","'+env+'","'+type+'");'
         # print insertsql
         result = modify_db(insertsql)
@@ -572,8 +579,12 @@ def rel_conf_update(usertype,nickname,badge):
         result = modify_db(updatesql)
         # print result
     sql = 'select * from rel_config where id ='+id+';'
-    info = query_db(sql)
-
+    info_1 = query_db(sql)
+    info = []
+    pc = prpcrypt('yj_L]<xQ07zrOqlf')
+    for i in info_1:
+        conf_value = pc.decrypt(i[2])
+        info.append([i[0],i[1],conf_value,i[3],i[4],i[5]])
     return render_template('pages/rel_conf_update.html',**locals())
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -881,6 +892,20 @@ def rel_publish():
     result = modify_db(publishsql)
     # print publishsql
     return "ok"
+
+
+@app.route('/query_key',methods=['POST'])  #key查询api
+def query_key():
+    location = request.values.get('location','')
+    env  = request.values.get('env','')
+    key = request.values.get('key','')
+    sql = 'select conf_value from rel_config where location = "'+location+'" and env = "'+env+'" and  conf_key = "'+key+'";'
+    result = query_db(sql)
+    if result != ():
+        result = result[0][0]
+        return result
+    else:
+        return abort(404)
 #-----------------------------------------------------------------------------------------------------------------------
 
 #脚本调用接口
