@@ -123,9 +123,11 @@ var clip = new ZeroClipboard( document.getElementById("c{{i[0]}}") );
 var clip = new ZeroClipboard( document.getElementById("a{{n[0]}}{{n[1]}}") );
 </script>
 <div id="{{n[0]}}{{n[1]}}"  aria-expanded="false" class="collapse" >
-{% for m in instanceinfo %}{% if m[0] == n[0] and m[1] == n[1] %}
+{% for m in instanceinfo %}{% if m[0] == n[0] and m[1] == n[1] %}{% if word1 and word1 in m[2] %}
+<font style="color:red">{{m[2]}}:{{m[3]}} | [{{m[4]}}]  [{{m[5]}}]  [{{m[6]}}] --{{m[7]}}</font><br>
+{% else %}
 {{m[2]}}:{{m[3]}} | [{{m[4]}}]  [{{m[5]}}]  [{{m[6]}}] --<font style="color:red">{{m[7]}}</font><br>
-{% endif %}{% endfor %}
+{% endif %}{% endif %}{% endfor %}
 </div>
 {% endif %}{% endfor %}
 </div></td>
@@ -175,9 +177,11 @@ var clip = new ZeroClipboard( document.getElementById("c{{i[0]}}") );
 var clip = new ZeroClipboard( document.getElementById("a{{n[0]}}{{n[1]}}") );
 </script>
 <div id="{{n[0]}}{{n[1]}}"  aria-expanded="false" class="collapse" >
-{% for m in instanceinfo %}{% if m[0] == n[0] and m[1] == n[1] %}
+{% for m in instanceinfo %}{% if m[0] == n[0] and m[1] == n[1] %}{% if word1 and word1 in m[2] %}
+<font style="color:red">{{m[2]}}:{{m[3]}} | [{{m[4]}}]  [{{m[5]}}]  [{{m[6]}}] --{{m[7]}}</font><br>
+{% else %}
 {{m[2]}}:{{m[3]}} | [{{m[4]}}]  [{{m[5]}}]  [{{m[6]}}] --<font style="color:red">{{m[7]}}</font><br>
-{% endif %}{% endfor %}
+{% endif %}{% endif %}{% endfor %}
 </div>
 {% endif %}{% endfor %}
 </div></td>

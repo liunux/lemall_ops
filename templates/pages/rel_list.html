@@ -109,19 +109,21 @@
         <div class="col-lg-10"><input class="form-control"  name="apply_time" value="{{ apply_time }}"  placeholder="" disabled></div></div>
 
       <div class="form-group col-lg-12">
-          <div class="col-lg-2"><h5 style="float:right;">svn<font style="color:red;"> *</font></h5></div>
-        <div class="col-lg-10"><input class="form-control"  name="svn" value="" placeholder="svn" required></div></div>
-
-      <div class="form-group col-lg-12">
           <div class="col-lg-2"><h5 style="float:right;">类型<font style="color:red;"> *</font></h5></div>
         <div class="col-lg-10"><select class="form-control" name="app_type">
-            <option value="增量">增量</option>
             <option value="全量">全量</option>
         </select></div></div>
 
+          <div class="form-group col-lg-12">
+          <div class="col-lg-2"><h5 style="float:right;">svn<font style="color:red;"> *</font></h5></div>
+        <div class="col-lg-8"><input class="form-control"  name="svn" id="svn" value="" placeholder="svn" required></div>
+          <div class="col-lg-2"><button type="button" id = 'relpace' onclick="replace()" class="btn btn-info">替换</button></div></div>
+
+
+
      <div class="form-group col-lg-12">
-        <div class="col-lg-2"><h5 style="float:right;">备注</h5></div>
-        <div class="col-lg-10"><textarea class="form-control" rows="3" name="apply_note" value="" placeholder=""></textarea></div></div>
+        <div class="col-lg-2"><h5 style="float:right;">替换结果</h5></div>
+        <div class="col-lg-10"><textarea class="form-control" rows="3" id="result" name="apply_note" value="" placeholder=""></textarea></div></div>
 
 
               <font style="color:red;" >  &nbsp;  </font>
@@ -205,6 +207,50 @@
 
  </tr>
 </tr>
+
+{#<script>#}
+{#function replace() {#}
+{#    var cmd;#}
+{#    if (window.XMLHttpRequest)#}
+{#  {// code for IE7+, Firefox, Chrome, Opera, Safari#}
+{#  cmd=new XMLHttpRequest();#}
+{#  }#}
+{#else#}
+{#  {// code for IE6, IE5#}
+{#  cmd=new ActiveXObject("Microsoft.XMLHTTP");#}
+{#  }#}
+{#    cmd.onreadystatechange=function() {#}
+{#        alert(cmd.status)#}
+{#        if (cmd.readyState == 4 ) {#}
+{#            alert(cmd.responseText)#}
+{#document.getElementById("result").innerHTML = cmd.responseText;        }#}
+{##}
+{#    }#}
+{#    var svn = $("#svn").val();#}
+{#    var url = 'http://10.182.63.65:8888/sub_key?location={{ i[1] }}&env={{ i[2] }}&svn=' + svn ;#}
+{#    cmd.open("POST", url, true);#}
+{#    cmd.send();#}
+{##}
+{#}#}
+{#</script>#}
+<script>
+ function replace(){
+            var svn = $("#svn").val();
+            $.ajax({
+                type: "post",
+                url: "/sub_key",
+{#                timeout:15000,#}
+                data : {location:'{{ i[1] }}',env:'{{ i[2] }}',svn:svn},
+{#                dataType: "json",#}
+                error: function(){
+                    alert('请求后端api超时');
+                },
+                success: function(data){
+document.getElementById("result").innerHTML = data;                }
+            });
+        };
+</script>
+
 {% endfor %}
                             </tbody>
                         </table>
@@ -251,5 +297,6 @@
 <script>
     swal("OMG!", "该项目有未完成的发版操作!", "error");
 </script>
+
 {% endif %}
 {% endblock %}

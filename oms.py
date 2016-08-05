@@ -154,7 +154,7 @@ def app_list(usertype,nickname,badge):
     app_num = query_db("select count(1) from ops_application  where  location like '"+location+"' and env like '"+env+"';")[0][0]
     mac_num = query_db("select count(1) from (select ip from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' group by ip) a;")[0][0]
     ins_num = query_db("select count(1) from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"';")[0][0]
-    #print location,env,app_num,mac_num,ins_num
+    print location,env,word
     if de_id and usertype == 'admin':
         deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
         modify_db(deleteappsql)
@@ -179,6 +179,8 @@ def app_list(usertype,nickname,badge):
         applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
     applicationinfo = query_db(applicationsql)
+    print applicationinfo
+    print applicationsql
     machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip  group by app_id,idc;"
     machineinfo = query_db(machinesql)
     instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip order by ip;"
@@ -280,7 +282,7 @@ def myapp_list(usertype,nickname,badge):
 
     else:
         sql = 'select * from ops_app_apply where developer="'+nickname+'" order by  FIELD(`status`,"待执行" ) desc,createtime desc;'
-        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id and applyer="'+nickname+'" order by FIELD(`bstatus`,"执行中","待执行","已失败"),apply_time desc;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id and applyer="'+nickname+'" order by FIELD(`bstatus`,"执行中","待执行","已失败") desc,apply_time desc;'
 
     info = query_db(sql)
     info1 = query_db(sql1)
@@ -469,15 +471,15 @@ def myapp_action(usertype,nickname,badge):
                     statussql = 'update ops_instance set status = "备" where app_id ='+str(app_id)+' and ip = "'+slaveIP+'"; '
                     #print statussql
                     result = modify_db(statussql)
-                #安装tomcat
-                ipsql = 'select ip,port from ops_instance where app_id ='+str(app_id)+';'
-                ipinfo = query_db(ipsql)
-                app_name = query_db(app_idsql)[0][1]
-                container = query_db(app_idsql)[0][2]
-                if container == "tomcat":
-                    method = "software"
-                    ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
-                    thread.start_new_thread(curl, (method,ask,"",nickname,""))
+                # #安装tomcat
+                # ipsql = 'select ip,port from ops_instance where app_id ='+str(app_id)+';'
+                # ipinfo = query_db(ipsql)
+                # app_name = query_db(app_idsql)[0][1]
+                # container = query_db(app_idsql)[0][2]
+                # if container == "tomcat":
+                #     method = "software"
+                #     ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+                #     thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
         if times_id:
             timessql = 'update ops_app_apply set status = "已驳回",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
@@ -512,7 +514,7 @@ def myapp_action(usertype,nickname,badge):
 
     if usertype == 'admin':
         sql = 'select * from ops_app_apply order by  FIELD(`status`,"待执行") desc,createtime desc;'
-        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败"),apply_time desc;;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败") desc,apply_time desc;;'
 
         info = query_db(sql)
         info1 = query_db(sql1)
@@ -540,6 +542,7 @@ def rel_config(usertype,nickname,badge):
     info = []
     pc = prpcrypt('yj_L]<xQ07zrOqlf')
     for i in info_1:
+        print i[2]
         conf_value = pc.decrypt(i[2])
         info.append([i[0],i[1],conf_value,i[3],i[4],i[5]])
     # print info,location,env,type,word
@@ -572,8 +575,10 @@ def rel_conf_update(usertype,nickname,badge):
     conf_value = request.values.get('conf_value','')
     conf_key = request.values.get('conf_key','')
     id = request.args.get('id','')
+    pc = prpcrypt('yj_L]<xQ07zrOqlf')
     # print location,env,type,conf_value,conf_key,id
     if conf_key:
+        conf_value = pc.encrypt(conf_value)
         updatesql = 'update rel_config set location = "'+location+'",env = "'+env+'",type = "'+type+'",conf_key = "'+conf_key+'",conf_value = "'+conf_value+'" where id = '+id+';'
         # print updatesql
         result = modify_db(updatesql)
@@ -581,7 +586,7 @@ def rel_conf_update(usertype,nickname,badge):
     sql = 'select * from rel_config where id ='+id+';'
     info_1 = query_db(sql)
     info = []
-    pc = prpcrypt('yj_L]<xQ07zrOqlf')
+
     for i in info_1:
         conf_value = pc.decrypt(i[2])
         info.append([i[0],i[1],conf_value,i[3],i[4],i[5]])
@@ -633,7 +638,7 @@ def app_info(usertype,nickname,badge):
             deletesql = 'delete from ops_instance where ins_id = '+str(i)+';'
             #print deletesql
             result = modify_db(deletesql)
-            empty()
+        empty()
     if mode:
         updatesql = 'update ops_application set app_name="'+app_name+'",location="'+location+'",env="'+env+'",terminal="'+terminal+'",app_type' \
                  '="'+app_type+'",domain="'+domain+'",container="'+container+'",function="'+function+'",url="'+url+'",developer="'+developer+'" ,org_name="'+org_name+'" where app_id='+str(app_id)+';'
@@ -659,15 +664,15 @@ def app_info(usertype,nickname,badge):
                 ipinfo.append([i,port])
             # print "ipinfo",ipinfo
             empty()
-            #安装tomcat
-            appsql = 'select app_name,container from ops_application where app_id ='+str(app_id)+';'
-            appinfo = query_db(appsql)
-            app_name = appinfo[0][0]
-            container = appinfo[0][1]
-            if container == "tomcat":
-                method = "software"
-                ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
-                thread.start_new_thread(curl, (method,ask,"",nickname,""))
+            # #安装tomcat
+            # appsql = 'select app_name,container from ops_application where app_id ='+str(app_id)+';'
+            # appinfo = query_db(appsql)
+            # app_name = appinfo[0][0]
+            # container = appinfo[0][1]
+            # if container == "tomcat":
+            #     method = "software"
+            #     ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+            #     thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
     if app_id:
         querysql = 'select * from ops_application where app_id ='+app_id+';'
@@ -906,6 +911,21 @@ def query_key():
         return result
     else:
         return abort(404)
+
+
+@app.route('/sub_key',methods=['POST'])  #key查询api
+def sub_key():
+    location = request.values.get('location','')
+    env  = request.values.get('env','')
+    svn = request.values.get('svn','')
+    url = 'http://10.182.63.65:8888/sub_key'
+    ask = {'location':location,'env':env,'svn_url':svn}
+    r = requests.post(url,data=ask)
+    result = r.text
+    print location,env,svn,result
+    return result
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 
 #脚本调用接口
