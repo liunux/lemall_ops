@@ -201,7 +201,7 @@ def faban(id,nickname):
 
 
 def curl(method,ask,yes_id,nickname,app_id):
-    url = "http://10.182.63.65:8888/"+method
+    url = server_url + method
     try:
         r = requests.post(url,data = ask)
         result = r.text

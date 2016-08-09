@@ -455,7 +455,7 @@ def myapp_action(usertype,nickname,badge):
                 applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime,org_name) (select app_name,location,' \
                         'env,terminal,container,domain,app_type,developer,function,dotime,leader from ops_app_apply where id='+check_id+');'
                 modify_db(applicationsql)
-                app_idsql = 'select app_id,a.app_name,a.container from ops_application a,ops_app_apply b where a.app_name=b.app_name and a.location=b.location and a.env=b.env and  a.terminal=b.terminal and id ='+check_id+';'
+                app_idsql = 'select app_id,a.app_name,a.container,a.env from ops_application a,ops_app_apply b where a.app_name=b.app_name and a.location=b.location and a.env=b.env and  a.terminal=b.terminal and id ='+check_id+';'
                 app_id = query_db(app_idsql)[0][0]
                 #print "#app_id",app_id
                 rel_sql = "insert into rel_operate(app_id) values("+str(app_id)+");"
@@ -471,15 +471,16 @@ def myapp_action(usertype,nickname,badge):
                     statussql = 'update ops_instance set status = "备" where app_id ='+str(app_id)+' and ip = "'+slaveIP+'"; '
                     #print statussql
                     result = modify_db(statussql)
-                # #安装tomcat
-                # ipsql = 'select ip,port from ops_instance where app_id ='+str(app_id)+';'
-                # ipinfo = query_db(ipsql)
-                # app_name = query_db(app_idsql)[0][1]
-                # container = query_db(app_idsql)[0][2]
-                # if container == "tomcat":
-                #     method = "software"
-                #     ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
-                #     thread.start_new_thread(curl, (method,ask,"",nickname,""))
+                #安装tomcat
+                ipsql = 'select ip,port from ops_instance where app_id ='+str(app_id)+';'
+                ipinfo = query_db(ipsql)
+                app_name = query_db(app_idsql)[0][1]
+                container = query_db(app_idsql)[0][2]
+                env = query_db(app_idsql)[0][3]
+                if env == '自动预览' and container == "tomcat":
+                    method = "software"
+                    ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+                    thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
         if times_id:
             timessql = 'update ops_app_apply set status = "已驳回",operator_note = "'+operator_note+'",dotime="'+dotime+'",operator="'+nickname+'" where id='+times_id+';'
@@ -664,15 +665,16 @@ def app_info(usertype,nickname,badge):
                 ipinfo.append([i,port])
             # print "ipinfo",ipinfo
             empty()
-            # #安装tomcat
-            # appsql = 'select app_name,container from ops_application where app_id ='+str(app_id)+';'
-            # appinfo = query_db(appsql)
-            # app_name = appinfo[0][0]
-            # container = appinfo[0][1]
-            # if container == "tomcat":
-            #     method = "software"
-            #     ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
-            #     thread.start_new_thread(curl, (method,ask,"",nickname,""))
+            #安装tomcat
+            appsql = 'select app_name,container,env from ops_application where app_id ='+str(app_id)+';'
+            appinfo = query_db(appsql)
+            app_name = appinfo[0][0]
+            container = appinfo[0][1]
+            env = appinfo[0][2]
+            if env == '自动预览' and container == "tomcat":
+                method = "software"
+                ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":"install"}
+                thread.start_new_thread(curl, (method,ask,"",nickname,""))
 
     if app_id:
         querysql = 'select * from ops_application where app_id ='+app_id+';'
@@ -717,13 +719,13 @@ def soft_install(usertype,nickname,badge):
         ipinfo = query_db(ipsql)
         ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":app_id,"software":"tomcat","software_mode":type}
         print ask
-        url = "http://10.182.63.65:8888/software"
+        url = server_url + "software"
         r = requests.post(url,data = ask)
         print r.text
         result =  r.text.split(":")[-1]
-    url = "http://10.182.63.65:8888/software_check"
+    url = server_url + "software_check"
     ask = {"ipinfo":str(info),"software":"tomcat","app_name":app_name}
-
+    print ask
     r = requests.post(url,data = ask)
     statusinfo = eval(r.text)
     info_new = []
@@ -883,12 +885,12 @@ def rel_publish():
     ip = request.values.get('ip','')
     port = request.values.get('port','')
     status = request.values.get('status','')
-    # type = request.values.get('type','')
+    type = request.values.get('type','')
     now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    # print "#rel_id:",rel_id
+    print "#rel_id:",rel_id
     checksql = 'select 1 from rel_publish where rel_id = '+rel_id+' and ip = "'+ip+'" and port = '+port+';'
     check = query_db(checksql)
-    # print checksql,check
+    print checksql,check
     if check:
         publishsql = 'update rel_publish set status = "'+status+'",finish_time = "'+now_time+'" where rel_id= '+rel_id+' and ip = "'+ip+'" and port = '+port+';'
     else:
@@ -918,7 +920,7 @@ def sub_key():
     location = request.values.get('location','')
     env  = request.values.get('env','')
     svn = request.values.get('svn','')
-    url = 'http://10.182.63.65:8888/sub_key'
+    url = server_url + 'sub_key'
     ask = {'location':location,'env':env,'svn_url':svn}
     r = requests.post(url,data=ask)
     result = r.text
