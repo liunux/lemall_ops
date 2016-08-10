@@ -154,15 +154,26 @@ def app_list(usertype,nickname,badge):
     app_num = query_db("select count(1) from ops_application  where  location like '"+location+"' and env like '"+env+"';")[0][0]
     mac_num = query_db("select count(1) from (select ip from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' group by ip) a;")[0][0]
     ins_num = query_db("select count(1) from ops_application a,ops_instance b where a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"';")[0][0]
-    print location,env,word
+    # print location,env,word
     if de_id and usertype == 'admin':
-        deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
-        modify_db(deleteappsql)
-        deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
-        modify_db(deleteinssql)
-        deleterelsql = 'delete from rel_operate where app_id = '+de_id+'; '
-        modify_db(deleterelsql)
-        qw = empty()
+        ipsql = 'select ip,port,status from ops_instance where app_id = '+de_id+';'
+        ipinfo = query_db(ipsql)
+        appsql = 'select app_name,env from ops_application where app_id ='+de_id+';'
+        app_name = query_db(appsql)[0][0]
+        env = query_db(appsql)[0][1]
+        url = server_url + "delete_server"
+        ask = {"ipinfo":str(ipinfo),"app_name":app_name,"app_id":de_id}
+        print ask,env
+        if env == '自动预览':
+            r = requests.post(url,data = ask)
+            print r.text
+        # deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
+        # modify_db(deleteappsql)
+        # deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
+        # modify_db(deleteinssql)
+        # deleterelsql = 'delete from rel_operate where app_id = '+de_id+'; '
+        # modify_db(deleterelsql)
+        # qw = empty()
         result = "ok"
     if mohu:
         word = '%'+word+'%'
@@ -179,8 +190,8 @@ def app_list(usertype,nickname,badge):
         applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
     applicationinfo = query_db(applicationsql)
-    print applicationinfo
-    print applicationsql
+    # print applicationinfo
+    # print applicationsql
     machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip  group by app_id,idc;"
     machineinfo = query_db(machinesql)
     instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip order by ip;"
