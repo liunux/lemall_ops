@@ -188,7 +188,7 @@ def app_list(usertype,nickname,badge):
         #print applicationsql
     elif usertype == 'guest':
         applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
-                     "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
+                     "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal limit 20;"
     applicationinfo = query_db(applicationsql)
     # print applicationinfo
     # print applicationsql
@@ -967,4 +967,4 @@ def query():
 if __name__ == '__main__':
     app.debug = True
     #app.run(host='10.154.81.158',port=8000)
-    app.run(host='0.0.0.0',port=8001)
+    app.run(host='0.0.0.0',port=8001, threaded=True)

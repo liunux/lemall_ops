@@ -212,6 +212,7 @@ def curl(method,ask,yes_id,nickname,app_id):
     if method == "publish":
         operate_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         svn = ask['app_svn']
+        version = svn.strip('/').split('/')[-1]
         publishsql = 'select id from rel_publish where status like "%失败%" and rel_id = '+str(yes_id)+';'
         publishinfo = query_db(publishsql)
         print "--------:",result
@@ -230,7 +231,7 @@ def curl(method,ask,yes_id,nickname,app_id):
                 operate_note = ""
         print status,operate_note
         sql = 'update rel_apply set status = "'+status+'",operate_time="'+operate_time+'",operate_note = "'+operate_note+'",operator="'+nickname+'" where id = '+str(yes_id)+';'
-        ope_sql = 'update rel_operate set status = "'+ope_status+'",svn ="'+svn+'",operate_time="'+operate_time+'",operator="'+nickname+'" where app_id = '+str(app_id)+';'
+        ope_sql = 'update rel_operate set status = "'+ope_status+'",version = "'+version+'",svn ="'+svn+'",operate_time="'+operate_time+'",operator="'+nickname+'" where app_id = '+str(app_id)+';'
         modify_db(ope_sql)
         modify_db(sql)
     thread.exit_thread()
