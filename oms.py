@@ -949,10 +949,10 @@ def query():
         location = request.values.get('b','大陆')
         env = request.values.get('c','生产')
         ip = request.values.get('ip','')
-        dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","":"俄罗斯"}
+        dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","ru":"俄罗斯"}
         if location in dict1.keys():
             location = dict1[location]
-        dict2 = {"sc":"生产","cs":"测试","yw":"运维","kf":"开发","yc":"压测","yl":"预览"}
+        dict2 = {"online":"生产","test":"测试","yw":"运维","kf":"开发","yc":"压测","yulan":"预览"}
         if env in dict2.keys():
             env = dict2[env]
         ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
