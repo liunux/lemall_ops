@@ -181,6 +181,8 @@ def app_list(usertype,nickname,badge):
         applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and location " \
                          "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' and (app_name like '"+word+"'" \
                          " or developer like '"+word+"' or ip like '"+word+"' or b.status like '"+word+"') group by app_name,location,env,terminal order by location,app_name,env,terminal;"
+        if '空' in word:
+            empty()
         #print applicationsql
     elif usertype == 'admin':
         applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
