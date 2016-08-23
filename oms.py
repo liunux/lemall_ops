@@ -291,7 +291,7 @@ def myapp_list(usertype,nickname,badge):
     # print "#result:",result
     if usertype == 'admin':
         sql = 'select * from ops_app_apply order by FIELD(`status`,"待执行" ) desc,createtime desc;'
-        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败"),apply_time desc;'
+        sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败") desc,apply_time desc;'
 
     else:
         sql = 'select * from ops_app_apply where developer="'+nickname+'" order by  FIELD(`status`,"待执行" ) desc,createtime desc;'
