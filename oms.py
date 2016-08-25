@@ -202,7 +202,8 @@ def app_list(usertype,nickname,badge):
     gnginxinfo = query_db(gnginxsql)
     nginxsql = "select vip,ip,status from ops_nginx;"
     nginxinfo = query_db(nginxsql)
-
+    v2psql = 'select ip,p_ip from ops_mac_v2p;'
+    v2pinfo = query_db(v2psql)
 
     return render_template('pages/app_list.html',**locals())
 
