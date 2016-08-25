@@ -145,10 +145,10 @@ def app_list(usertype,nickname,badge):
     org_name = leader(username)[1].split("@")[0]
     # print org_name
     location = request.args.get('location','大陆')
-    env =  request.args.get('env','生产')
-    terminal =  request.args.get('terminal','%')
-    word =  request.args.get('word','').strip()
-    word1 =  request.args.get('word','').strip()
+    env = request.args.get('env','生产')
+    terminal = request.args.get('terminal','%')
+    word = request.args.get('word','').strip()
+    word1 = request.args.get('word','').strip()
     mohu = request.args.get('mohu','')
     de_id = request.args.get('de_id','')
     app_num = query_db("select count(1) from ops_application  where  location like '"+location+"' and env like '"+env+"';")[0][0]
@@ -178,9 +178,9 @@ def app_list(usertype,nickname,badge):
     if mohu:
         word = '%'+word+'%'
     if word:
-        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and location " \
+        applicationsql = "select a.*,count(b.app_id),c.out_ip from ops_application a,ops_instance b,ops_machine c where a.app_id=b.app_id and b.ip = c.in_ip and location " \
                          "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' and (app_name like '"+word+"'" \
-                         " or developer like '"+word+"' or ip like '"+word+"' or b.status like '"+word+"') group by app_name,location,env,terminal order by location,app_name,env,terminal;"
+                         " or developer like '"+word+"' or ip like '"+word+"' or out_ip like '"+word+"' or b.status like '"+word+"') group by app_name,location,env,terminal order by location,app_name,env,terminal;"
         if '空' in word:
             empty()
         #print applicationsql
@@ -465,8 +465,8 @@ def myapp_action(usertype,nickname,badge):
                 result = "no_ip"
 
             else:
-                applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime,org_name) (select app_name,location,' \
-                        'env,terminal,container,domain,app_type,developer,function,dotime,leader from ops_app_apply where id='+check_id+');'
+                applicationsql = 'insert into ops_application(app_name,location,env,terminal,container,domain,app_type,developer,function,createtime,org_name,url) (select app_name,location,' \
+                        'env,terminal,container,domain,app_type,developer,function,dotime,leader,url from ops_app_apply where id='+check_id+');'
                 modify_db(applicationsql)
                 app_idsql = 'select app_id,a.app_name,a.container,a.env from ops_application a,ops_app_apply b where a.app_name=b.app_name and a.location=b.location and a.env=b.env and  a.terminal=b.terminal and id ='+check_id+';'
                 app_id = query_db(app_idsql)[0][0]
