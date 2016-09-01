@@ -167,13 +167,13 @@ def app_list(usertype,nickname,badge):
         if env == '自动预览':
             r = requests.post(url,data = ask)
             print r.text
-        # deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
-        # modify_db(deleteappsql)
-        # deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
-        # modify_db(deleteinssql)
-        # deleterelsql = 'delete from rel_operate where app_id = '+de_id+'; '
-        # modify_db(deleterelsql)
-        # qw = empty()
+        deleteappsql = 'delete from ops_application where app_id = '+de_id+'; '
+        modify_db(deleteappsql)
+        deleteinssql = 'delete from ops_instance where app_id = '+de_id+'; '
+        modify_db(deleteinssql)
+        deleterelsql = 'delete from rel_operate where app_id = '+de_id+'; '
+        modify_db(deleterelsql)
+        empty()
         result = "ok"
     if mohu:
         word = '%'+word+'%'
