@@ -49,7 +49,15 @@
 {#<button type="button" id="send2" class="btn btn-outline btn-primary confirm_delete" onclick="sendcmd2()" >执行</button>#}
 {#    </div>#}
 {#    </div>#}
-
+    <div class="row">
+        <div class="col-lg-2">
+           <h5 style="float:right;">常用命令:</h5>
+        </div>
+        <button class="btn btn-info btn-outline commond" value="for i in {{ ports }};do /etc/init.d/tomcat_$i restart;done" type="button">&nbsp;&nbsp;tomcat重启</button>
+        <button class="btn btn-info btn-outline commond" value="cd /letv/deployment/{{ app_name }}/bin;sh stop.sh;sleep 1;sh start.sh" type="button">&nbsp;&nbsp;dubbo重启</button>
+        <button class="btn btn-info btn-outline commond" value="netstat -nlpt | grep {{ ports }}" type="button">&nbsp;&nbsp;运行状态</button>
+    </div>
+    <br>
     <div class="row">
         <div class="col-lg-2">
            <h5 style="float:right;">clush命令:</h5>
@@ -178,6 +186,16 @@ function sendcmd() {
     cmd.send();
 
 }
+</script>
+
+<script>
+ $(function() {
+           $(".commond").click(function() {
+               var a = $(this).val()
+               $("#cmd").val(a)
+           })
+ })
+
 </script>
 
 

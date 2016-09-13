@@ -706,11 +706,14 @@ def app_info(usertype,nickname,badge):
 def app_action(usertype,nickname,badge):
     app_id = request.args.get('app_id','')
     appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
-    logname = 'action_'+query_db(appsql)[0][0]+'.log'
-    os.system('rm -f '+work_path+logname )
+    app_name = query_db(appsql)[0][0]
+    logname = 'action_'+app_name+'.log'
+    os.system('rm -f '+work_path+logname)
     if app_id:
         IPsql = 'select ip,port,status,idc,cpu,mem,disk,ins_id from ops_instance a,ops_machine b where ip=in_ip and app_id ='+app_id+' order by ip,status,port;'
         IPinfo = query_db(IPsql)
+        ports = [str(x[1]) for x in IPinfo]
+        ports = " ".join(list(set(ports)))
     else:
         return abort(403)
     return render_template('pages/app_action.html',**locals())
@@ -833,14 +836,18 @@ def rizhi(usertype,nickname,badge):
     nownum = request.args.get('nownum','')
     appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
     logname = work_path+'action_'+query_db(appsql)[0][0]+'.log'
-    rizhi = open(logname,'r')
-    if nownum != 0 :
-        rizhi.seek(int(nownum))
-    rizhiinfo = rizhi.read()
-    nownum = rizhi.tell()
-    rzinfo = str(nownum)+"^^^"+rizhiinfo
-    rizhi.close()
-    return rzinfo
+    try:
+        rizhi = open(logname,'r')
+        if nownum != 0 :
+            rizhi.seek(int(nownum))
+        rizhiinfo = rizhi.read()
+        nownum = rizhi.tell()
+        rzinfo = str(nownum)+"^^^"+rizhiinfo
+        rizhi.close()
+        return rzinfo
+    except:
+        return ""
+
 
 
 
