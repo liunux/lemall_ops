@@ -611,6 +611,7 @@ def rel_conf_update(usertype,nickname,badge):
 
 @app.route('/app_info',methods=['POST', 'GET'])  #服务基本信息
 @test_login
+@test_admin
 def app_info(usertype,nickname,badge):
 
     username = request.cookies.get('username')
@@ -703,6 +704,7 @@ def app_info(usertype,nickname,badge):
 
 @app.route('/app_action',methods=['POST', 'GET'])  #服务操作
 @test_login
+@test_admin
 def app_action(usertype,nickname,badge):
     app_id = request.args.get('app_id','')
     appsql = 'select app_name from ops_application where app_id='+str(app_id)+';'
@@ -809,6 +811,7 @@ def rel_list(usertype,nickname,badge):
 
 @app.route('/send_cmd',methods=['POST', 'GET'])  #clush命令接口
 @test_login
+@test_admin
 def send_cmd(usertype,nickname,badge):
     if usertype == 'admin':
         app_id = request.args.get('app_id','')
@@ -827,6 +830,8 @@ def send_cmd(usertype,nickname,badge):
             clush_cmd = 'ssh root@10.182.63.65 \'clush -w "'+ips+'" "'+cmd+'"\' >> '+work_path+logname+' 2>&1'
             a = os.system(clush_cmd)
         return str(a)
+    else:
+        return abort(403)
 
 @app.route('/rizhi',methods=['POST', 'GET'])  #rizhi
 @test_login
