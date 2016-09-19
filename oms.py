@@ -959,7 +959,7 @@ def sub_key():
 #脚本调用接口
 @app.route('/query',methods=['POST', 'GET'])
 def query():
-
+    type = request.values.get('type','')
     app_name = request.values.get('a','')
     location = request.values.get('b','大陆')
     env = request.values.get('c','生产')
@@ -974,7 +974,9 @@ def query():
     ipinfo = query_db(ip_sql)
     app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
     appinfo = query_db(app_sql)
+    if type == "json" and ip:
 
+        return jsonify(ipinfo)
     return render_template('query.html',**locals())
 
 
