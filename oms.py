@@ -959,21 +959,21 @@ def sub_key():
 #脚本调用接口
 @app.route('/query',methods=['POST', 'GET'])
 def query():
-    if request.method == 'POST':
-        app_name = request.values.get('a','')
-        location = request.values.get('b','大陆')
-        env = request.values.get('c','生产')
-        ip = request.values.get('ip','')
-        dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","ru":"俄罗斯"}
-        if location in dict1.keys():
-            location = dict1[location]
-        dict2 = {"online":"生产","test":"测试","yw":"运维","kf":"开发","yc":"压测","yulan":"预览"}
-        if env in dict2.keys():
-            env = dict2[env]
-        ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
-        ipinfo = query_db(ip_sql)
-        app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
-        appinfo = query_db(app_sql)
+
+    app_name = request.values.get('a','')
+    location = request.values.get('b','大陆')
+    env = request.values.get('c','生产')
+    ip = request.values.get('ip','')
+    dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","ru":"俄罗斯"}
+    if location in dict1.keys():
+        location = dict1[location]
+    dict2 = {"online":"生产","test":"测试","yw":"运维","kf":"开发","yc":"压测","yulan":"预览"}
+    if env in dict2.keys():
+        env = dict2[env]
+    ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
+    ipinfo = query_db(ip_sql)
+    app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
+    appinfo = query_db(app_sql)
 
     return render_template('query.html',**locals())
 
