@@ -965,6 +965,7 @@ def query():
     env = request.values.get('c','生产')
     ip = request.values.get('ip','')
     dict1 = {"cn":"大陆","us":"美国","in":"印度","hk":"香港","ru":"俄罗斯"}
+    print "123",type,ip
     if location in dict1.keys():
         location = dict1[location]
     dict2 = {"online":"生产","test":"测试","yw":"运维","kf":"开发","yc":"压测","yulan":"预览"}
@@ -974,9 +975,12 @@ def query():
     ipinfo = query_db(ip_sql)
     app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
     appinfo = query_db(app_sql)
-    if type == "json" and ip:
-
-        return jsonify(ipinfo)
+    print appinfo
+    if type == "json" and appinfo:
+        dict = {}
+        dict["status"] = "0"
+        dict["message"] = appinfo
+        return jsonify(dict)
     return render_template('query.html',**locals())
 
 
