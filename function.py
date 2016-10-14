@@ -212,7 +212,9 @@ def curl(method,ask,yes_id,nickname,app_id):
     if method == "publish":
         operate_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         svn = ask['app_svn']
-        version = svn.strip('/').split('/')[-1]
+        print "svn:",svn,type(svn)
+        # version = svn.strip('/').split('/')[-1]
+        version = query_db('select version from rel_apply where id = ' + str(yes_id)+';')[0][0]
         publishsql = 'select id from rel_publish where status like "%失败%" and rel_id = '+str(yes_id)+';'
         publishinfo = query_db(publishsql)
         print "--------:",result

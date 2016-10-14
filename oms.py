@@ -519,7 +519,7 @@ def myapp_action(usertype,nickname,badge):
             # print type(ipinfo)
             method = "publish"
             ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id}
-            # print "ask:",app_svn,app_type
+            print "ask:",app_svn,app_type
             thread.start_new_thread(curl, (method,ask,yes_id,nickname,app_id))
             return redirect(url_for('process',id=yes_id))
 
@@ -761,29 +761,32 @@ def soft_install(usertype,nickname,badge):
 @test_login
 def rel_list(usertype,nickname,badge):
     apply_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    svn  = request.values.get('svn','').strip('/')
-    backup_id  = request.values.get('backup_id','')
+    svn = request.values.get('svn','').strip('/')
+    version = svn.strip('/').split('/')[-1]
+    conf_svn = request.values.get('conf_svn','').strip('/')
+    if conf_svn:
+        svn = [svn,conf_svn]
+    backup_id = request.values.get('backup_id','')
     type = request.values.get('app_type','')
     location = request.args.get('location','大陆')
-    env =  request.args.get('env','生产')
-    terminal =  request.args.get('terminal','%')
+    env = request.args.get('env','生产')
+    terminal = request.args.get('terminal','%')
     # print "#type:",type,svn
-    word =  request.args.get('word','')
-    word1 =  request.args.get('word','')
+    word = request.args.get('word','')
+    word1 = request.args.get('word','')
     mohu = request.args.get('mohu','')
-    apply_note  = request.values.get('apply_note','')
-    publish_id  = request.values.get('publish_id','')
-    rollback_id  = request.values.get('rollback_id','')
+    apply_note = request.values.get('apply_note','')
+    publish_id = request.values.get('publish_id','')
+    rollback_id = request.values.get('rollback_id','')
 
     if publish_id:
         # print publish_id
-        version = svn.strip('/').split('/')[-1]
         check = query_db('select count(1) from rel_apply where app_id = '+str(publish_id)+' and status in ("待执行","已失败");')
         if check[0][0] != 0:
             result = 2
         else:
             applysql = 'insert into rel_apply(app_id,type,version,svn,applyer,apply_time,apply_note,status) ' \
-                   'values('+str(publish_id)+',"'+type+'","'+str(version)+'","'+svn+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
+                   'values('+str(publish_id)+',"'+type+'","'+str(version)+'","'+str(svn)+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
             result = modify_db(applysql)
     if rollback_id:
         # print rollback_id,backup_id
