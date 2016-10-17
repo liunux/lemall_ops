@@ -351,7 +351,7 @@ def myapp_apply(usertype,nickname,badge):
     org_name = p_email.split('@')[0]
     if request.method == 'POST':
         project_name = request.values.get('project_name','')
-        app_name = request.values.get('app_name','')
+        app_name = request.values.get('app_name','').replace(' ','')
         location = request.values.get('location','')
         env = request.values.get('env','')
         terminal = request.values.get('terminal','')
@@ -977,10 +977,10 @@ def query():
     if env in dict2.keys():
         env = dict2[env]
     ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
-    if ip != "":
-        ipinfo = query_db(ip_sql)
-    else:
+    if ip == "":
         ipinfo = ()
+    else:
+        ipinfo = query_db(ip_sql)
     app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
     appinfo = query_db(app_sql)
     print appinfo
