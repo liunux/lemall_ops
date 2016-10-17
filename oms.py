@@ -509,6 +509,8 @@ def myapp_action(usertype,nickname,badge):
             app_sql = "select app_id,svn,version,type from rel_apply where id = "+str(yes_id)+";"
             app_id = query_db(app_sql)[0][0]
             app_name = query_db('select app_name from ops_application where app_id ='+str(app_id)+';')[0][0]
+            container = query_db('select container from ops_application where app_id ='+str(app_id)+';')[0][0]
+
             app_type = query_db(app_sql)[0][3]
             if app_type == "回滚":
                 app_svn = int(str(query_db(app_sql)[0][1]).split('_')[0])+int(gap)
@@ -518,7 +520,7 @@ def myapp_action(usertype,nickname,badge):
             ipinfo = query_db(ipsql)
             # print type(ipinfo)
             method = "publish"
-            ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id}
+            ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id,"container":container}
             print "ask:",app_svn,app_type
             thread.start_new_thread(curl, (method,ask,yes_id,nickname,app_id))
             return redirect(url_for('process',id=yes_id))
