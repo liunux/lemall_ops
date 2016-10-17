@@ -977,10 +977,7 @@ def query():
     if env in dict2.keys():
         env = dict2[env]
     ip_sql = 'select app_name,ip,port,b.status from ops_application a,ops_instance b where a.app_id=b.app_id and app_name like "'+app_name+'" and location="'+location+'" and env = "'+env+'" order by ip,port,b.status;'
-    if ip == "":
-        ipinfo = ()
-    else:
-        ipinfo = query_db(ip_sql)
+    ipinfo = query_db(ip_sql)
     app_sql = 'select app_name,location,env from ops_application a,ops_instance b where a.app_id=b.app_id and ip like "'+ip+'";'
     appinfo = query_db(app_sql)
     print appinfo
