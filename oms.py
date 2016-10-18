@@ -958,6 +958,16 @@ def sub_key():
     print location,env,svn,result
     return result
 
+@app.route('/check_rel')  #查询是否第一次发版
+def check_rel():
+    rel_id = request.values.get('rel_id','')
+    sql = 'select b.status from rel_apply a,rel_operate b where a.app_id=b.app_id and a.id=' + str(rel_id) + ';'
+    info = query_db(sql)[0][0]
+    if info is None:
+        result = 'first'
+    else:
+        result = 'no first'
+    return result
 
 #-----------------------------------------------------------------------------------------------------------------------
 
