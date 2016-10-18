@@ -178,23 +178,23 @@ def app_list(usertype,nickname,badge):
     if mohu:
         word = '%'+word+'%'
     if word:
-        applicationsql = "select a.*,count(b.app_id),c.out_ip from ops_application a,ops_instance b,ops_machine c where a.app_id=b.app_id and b.ip = c.in_ip and location " \
+        applicationsql = "select a.*,count(b.app_id),c.out_ip from ops_application a,ops_instance b,ops_machine c where a.app_id=b.app_id and b.ip = c.in_ip and b.ip !='' and location " \
                          "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' and (app_name like '"+word+"'" \
                          " or developer like '"+word+"' or ip like '"+word+"' or out_ip like '"+word+"' or b.status like '"+word+"') group by app_name,location,env,terminal order by location,app_name,env,terminal;"
         if '空' in word:
             empty()
         #print applicationsql
     elif usertype == 'admin':
-        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
+        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and b.ip != '' and  location " \
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal limit 20;"
         #print applicationsql
     elif usertype == 'guest':
-        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and  location " \
+        applicationsql = "select a.*,count(b.app_id) from ops_application a,ops_instance b where a.app_id=b.app_id and b.ip != '' and location " \
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
     applicationinfo = query_db(applicationsql)
     # print applicationinfo
     print applicationsql
-    machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip  group by app_id,idc;"
+    machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip and ip != ''  group by app_id,idc;"
     machineinfo = query_db(machinesql)
     instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip and ip != '' order by ip;"
     instanceinfo = query_db(instancesql)
