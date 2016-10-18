@@ -196,7 +196,7 @@ def app_list(usertype,nickname,badge):
     print applicationsql
     machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip  group by app_id,idc;"
     machineinfo = query_db(machinesql)
-    instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip order by ip;"
+    instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip and ip != '' order by ip;"
     instanceinfo = query_db(instancesql)
     gnginxsql = "select ngx_gname,vip,count(1),ngx_id from ops_nginx  group by ngx_gname,vip;"
     gnginxinfo = query_db(gnginxsql)
