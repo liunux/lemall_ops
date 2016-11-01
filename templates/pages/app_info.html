@@ -165,12 +165,14 @@
                                             <td>{{i[3]}}</td>
                                             <td>{{i[4]}} | {{i[5]}} | {{i[6]}}</td>
                                             {% if i[2] =='备' %}
-                                            <td><a href="app_update?app_id={{app_id}}&set_id={{i[7]}}" class="confirm_delete"><span class="btn label label-warning">备</span></a></td>
+                                            <td><a href="app_info?app_id={{app_id}}&set_id={{i[7]}}" class="confirm_delete"><span class="btn label label-warning">备</span></a></td>
+                                            {% elif i[2] =='热备' %}
+                                            <td><a href="app_info?app_id={{app_id}}&set_id={{i[7]}}" class="confirm_delete "><span class="btn label label-success">热备</span></a></td>
                                             {% else %}
-                                            <td><a href="app_update?app_id={{app_id}}&off_id={{i[7]}}" class="confirm_delete "><span class="btn label label-info">主</span></a></td>
+                                            <td><a href="app_info?app_id={{app_id}}&set_id={{i[7]}}" class="confirm_delete "><span class="btn label label-info">主</span></a></td>
                                             {% endif %}
 
-                                            <td><a href="app_update?app_id={{app_id}}&ins_id={{i[7]}}" class="confirm_delete"><span class="glyphicon glyphicon-trash"></span></a></td>
+                                            <td><a href="app_info?app_id={{app_id}}&ins_id={{i[7]}}" class="confirm_delete"><span class="glyphicon glyphicon-trash"></span></a></td>
                                         </tr>
                                     {% endfor %}
 
@@ -179,7 +181,7 @@
 
                             <div class="col-lg-12">
                                     <div class="col-lg-5"> </div>
-                                    <button type="submit" class="btn btn-outline btn-danger confirm_delete" >批量删除</button>
+                                    <button type="submit" class="btn btn-outline btn-danger confirm_delete" name="piliang" value="delete">批量删除</button>
                                 </div>
 
                             </form>
