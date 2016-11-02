@@ -69,12 +69,21 @@
       <div class="modal-body ">
           <form method="post">
               <div class="form-group col-lg-12">
+                <div class="col-lg-2"><h5 style="float:right;">方式<font style="color:red;"> *</font></h5></div>
+                  <div class="col-lg-10">
+                      <select  class="form-control" id="method">
+                          <option value="手动输入">手动输入</option>
+                          <option value="自动大陆预览">自动大陆预览</option>
+                      </select>
+                  </div>
+              </div>
+              <div class="form-group col-lg-12">
         <div class="col-lg-2"><h5 style="float:right;">IP(全)<font style="color:red;"> *</font></h5></div>
-        <div class="col-lg-10"><textarea class="form-control" rows="3" name="IP" value="" placeholder="多个IP以','分隔；例：1.1.1.1,2.2.2.2" required></textarea></div></div>
+        <div class="col-lg-10"><textarea class="form-control" rows="3" name="IP" id="ip" value="" placeholder="多个IP以','分隔；例：1.1.1.1,2.2.2.2" required></textarea></div></div>
 
       <div class="form-group col-lg-12">
           <div class="col-lg-2"><h5 style="float:right;">端口<font style="color:red;"> *</font></h5></div>
-        <div class="col-lg-10"><input class="form-control"  name="port" value=""  placeholder="请输入端口" required></div></div>
+        <div class="col-lg-10"><input class="form-control"  name="port" id="port" value=""  placeholder="请输入端口" required></div></div>
 
       <div class="form-group col-lg-12">
           <div class="col-lg-2"><h5 style="float:right;">备机IP</h5></div>
@@ -348,6 +357,28 @@ function load(){
 {#setTimeout('loadXMLDoc()',1000); //指定1秒刷新一次#}
 {#setInterval("load()",3000);#}
 </script>
+    <script>
+        $('#method').change(function(){
+        var p1=$(this).children('option:selected').val();//这就是selected的值
+        if (p1=="自动大陆预览") {
+            var cmd = new XMLHttpRequest();
+            cmd.onreadystatechange=function() {
+                if (cmd.readyState == 4 && cmd.status == 200) {
+                    $('#ip').val(cmd.responseText.split(':')[0])
+                    $('#port').val(cmd.responseText.split(':')[1])
+                }
+            };
+            var url = '/autoip';
+            cmd.open("GET", url, true);
+            cmd.send();
+        }
+            else{
+            $('#ip').val("")
+            $('#port').val("")
+        }
+        })
+    </script>
+
 
 
 {#      <script type="text/javascript">#}

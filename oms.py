@@ -972,6 +972,33 @@ def check_rel():
         result = 'no first'
     return result
 
+@app.route('/autoip',methods=['POST','GET'])  #查询是否第一次发版
+@test_login
+@test_admin
+def autoip(usertype,nickname,badge):
+    ips = query_db('select ip,mem from ops_instance a,ops_machine b,ops_application c where a.ip=b.in_ip and a.app_id=c.app_id and app_name="empty" and location="大陆" and env="自动预览";')
+    for i in ips:
+        if '6' in i[1]:
+            num = 8
+        elif '4' in i[1]:
+            num = 4
+        elif '8' in i[1]:
+            num = 12
+        else:
+            num = 20
+        ins = query_db('select count(1) as ins from ops_instance where ip ="' + i[0] + '";')[0][0]
+        if ins <= num:
+            ins_port = query_db('select port from ops_instance where ip="' + i[0] + '";')
+            port_list = range(8001,8001+num)
+            for n in port_list:
+                if n not in [x[0] for x in ins_port]:
+                    ip = i[0]
+                    port = n
+                    result = ip + ":" + str(port)
+                    break
+            break
+    return result
+
 #-----------------------------------------------------------------------------------------------------------------------
 
 #脚本调用接口
