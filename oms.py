@@ -193,7 +193,7 @@ def app_list(usertype,nickname,badge):
                      "like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' group by app_name,location,env,terminal order by location,app_name,env,terminal;"
     applicationinfo = query_db(applicationsql)
     # print applicationinfo
-    print applicationsql
+    # print applicationsql
     machinesql = "select app_id,idc,count(1) from ops_instance a,ops_machine b where ip=in_ip and ip != ''  group by app_id,idc;"
     machineinfo = query_db(machinesql)
     instancesql = "select app_id,idc,ip,port,cpu,mem,disk,status from ops_instance a,ops_machine b  where ip=in_ip and ip != '' order by ip;"
@@ -1028,9 +1028,6 @@ def query():
         return jsonify(dict)
     return render_template('query.html',**locals())
 
-
-
 if __name__ == '__main__':
     app.debug = True
-    #app.run(host='10.154.81.158',port=8000)
-    app.run(host='0.0.0.0',port=8001, threaded=True)
+    app.run(host='0.0.0.0',port=8001,threaded=True)
