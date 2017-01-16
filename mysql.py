@@ -13,7 +13,7 @@ work_path = '/root/linpeng/test/'
 
 def query_db(sql):
     try:
-        conn=MySQLdb.connect(host="10.112.83.192",port=3306,user="ops_res",passwd="ops_res",db="ops_res",charset="utf8")
+
         cursor = conn.cursor()
         cursor.execute(sql)
         alldata = cursor.fetchall()
@@ -25,7 +25,7 @@ def query_db(sql):
 
 def modify_db(sql):
     try:
-        conn=MySQLdb.connect(host="10.112.83.192",port=3306,user="ops_res",passwd="ops_res",db="ops_res",charset="utf8")
+
         cursor = conn.cursor()
         n = cursor.execute(sql)
         conn.commit()
