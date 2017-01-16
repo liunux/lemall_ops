@@ -17,7 +17,7 @@ def login():
         try:
             username = request.form['username']
             redirect_url = request.form['redirect_url']
-            url = 'https://oauthtest.lecloud.com/nopagelogin?&ldap=true'
+            url = 'https://oauth.lecloud.com/nopagelogin?&ldap=true'
             data = {}
             data['username'] = request.form['username']
             data['password'] = request.form['password']
@@ -503,6 +503,8 @@ def myapp_action(usertype,nickname,badge):
     else:
         yes_id = request.values.get('yes_id','')
         no_id = request.values.get('no_id','')
+        ci_execute_id = request.values.get('ci_execute_id','')
+        ci_reject_id = request.values.get('ci_reject_id','')
         operate_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         if yes_id and usertype == "admin":
             modify_db('update rel_apply set status = "执行中" where id = '+str(yes_id)+';')
@@ -510,6 +512,7 @@ def myapp_action(usertype,nickname,badge):
             app_id = query_db(app_sql)[0][0]
             app_name = query_db('select app_name from ops_application where app_id ='+str(app_id)+';')[0][0]
             container = query_db('select container from ops_application where app_id ='+str(app_id)+';')[0][0]
+            app_version = query_db('select version from rel_apply where app_id ='+str(app_id)+';')[0][0]
 
             app_type = query_db(app_sql)[0][3]
             if app_type == "回滚":
@@ -520,10 +523,15 @@ def myapp_action(usertype,nickname,badge):
             ipinfo = query_db(ipsql)
             # print type(ipinfo)
             method = "publish"
-            ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id,"container":container}
-            print "ask:",app_svn,app_type
+            print app_svn
+            if not app_svn:
+                ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_svn":str(app_svn),"app_type":app_type,"rel_id":yes_id,"container":container}
+            else:
+                ask={"ipinfo":str(ipinfo),"app_name":app_name,"app_version":str(app_version),"app_type":'ci_publish',"rel_id":yes_id,"container":container}
+            print ask,app_svn,app_type
             thread.start_new_thread(curl, (method,ask,yes_id,nickname,app_id))
             return redirect(url_for('process',id=yes_id))
+
 
         if no_id and usertype == "admin":
             nosql = 'update rel_apply set status = "已驳回",operate_time="'+operate_time+'",operator="'+nickname+'" where id='+no_id+';'
@@ -532,9 +540,12 @@ def myapp_action(usertype,nickname,badge):
     if usertype == 'admin':
         sql = 'select * from ops_app_apply order by  FIELD(`status`,"待执行") desc,createtime desc;'
         sql1 = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id order by FIELD(`bstatus`,"执行中","待执行","已失败") desc,apply_time desc;;'
+        sql_ci = 'select app_name,location,env,terminal,b.*,b.status as bstatus from ops_application a,rel_apply b where a.app_id=b.app_id and b.svn is NULL order by FIELD(`bstatus`,"执行中","待执行","已失败") desc,apply_time desc;;'
 
         info = query_db(sql)
         info1 = query_db(sql1)
+        info_ci = query_db(sql_ci)
+        print info_ci
 
     else:
         return abort(403)
@@ -816,6 +827,80 @@ def rel_list(usertype,nickname,badge):
     rel_applyinfo = query_db(rel_applysql)
     # print info
     return render_template('pages/rel_list.html',**locals())
+
+#####add by liulihua############
+@app.route('/ci_publish_apply',methods=['POST', 'GET'])  #发版
+@test_login
+def ci_publish_apply(usertype,nickname,badge):
+    apply_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    version = request.values.get('banben','')
+    backup_id = request.values.get('backup_id','')
+    location = request.args.get('location','大陆')
+    env = request.args.get('env','生产')
+    terminal = request.args.get('terminal','%')
+    # print "#type:",type,svn
+    word = request.args.get('word','')
+    word1 = request.args.get('word','')
+    mohu = request.args.get('mohu','')
+    apply_note = request.values.get('apply_note','')
+    publish_id = request.values.get('publish_id','')
+    rollback_id = request.values.get('rollback_id','')
+
+
+    if publish_id:
+        print publish_id
+        #ci_app_name = query_db('select app_name from ops_application where app_id = '+str(publish_id)+';')
+        #ci_version = query_db('select war_url from ops_jenkins where app_name in (select app_name from ops_application where app_id = '+str(publish_id)+')'';')
+
+        #print ci_app_name[0][0]
+
+        check = query_db('select count(1) from rel_apply where app_id = '+str(publish_id)+' and status in ("待执行","已失败");')
+        if check[0][0] != 0:
+            result = 2
+        else:
+            applysql = 'insert into rel_apply(app_id,version,applyer,apply_time,apply_note,status) ' \
+                   'values('+str(publish_id)+',"'+str(version)+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
+            result = modify_db(applysql)
+    if rollback_id:
+        #ci_app_name = query_db('select app_name from ops_application where app_id = '+str(rollback_id)+';')
+        # print rollback_id,backup_id
+        version = str(backup_id).split('_')[-1]
+        check = query_db('select count(1) from rel_apply where app_id = '+str(rollback_id)+' and status in ("待执行","已失败");')
+        if check[0][0] != 0:
+            result = 2
+        else:
+            applysql = 'insert into rel_apply(app_id,version,applyer,apply_time,apply_note,status) ' \
+                   'values('+str(publish_id)+',"'+str(version)+'","'+nickname+'","'+apply_time+'","'+apply_note+'","待执行");'
+            result = modify_db(applysql)
+    if mohu:
+        word = '%'+word+'%'
+    if word:
+        infosql = "select app_name,location,env,terminal,a.svn,version,operate_time,operator,note,b.status,b.app_id,container,domain,app_type,developer,function,url from ops_application a,rel_operate b where" \
+              " a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' and app_name like '"+word+"';"
+    else:
+        infosql = "select app_name,location,env,terminal,a.svn,version,operate_time,operator,note,b.status,b.app_id,container,domain,app_type,developer,function,url from ops_application a,rel_operate b where" \
+              " a.app_id=b.app_id and  location like '"+location+"' and env like '"+env+"' and terminal like '"+terminal+"' limit 20;"
+    info = query_db(infosql)
+    rel_applysql = 'select id,app_id,operate_time,version from rel_apply where status = "已完成" order by operate_time desc limit 6;'
+    rel_applyinfo = query_db(rel_applysql)
+    if any(info):
+        ci_version = query_db('select tags from ops_jenkins where app_name in (select app_name from ops_application where app_id = ' + str(info[0][10]) + ')'';')
+    #ci_version = ['a','b','c']
+    #ci_app_name = query_db('select app_name from ops_application where app_id = ' + str(publish_id) + ';')
+    #print ci_app_name
+    #version = query_db('select war_url from ops_jenkins where app_name = ' + str(ci_app_name) + ';')
+    #print version
+    #versionsql = 'select app_id,app_name,location,env,terminal from ops_application order by location;'
+    #version_info = query_db(appsql)
+    #print info
+    #print ci_version
+    return render_template('pages/ci_publish_apply.html',**locals())
+
+############## end ###########
+
+
+
+
 
 @app.route('/send_cmd',methods=['POST', 'GET'])  #clush命令接口
 @test_login

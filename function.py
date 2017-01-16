@@ -211,7 +211,8 @@ def curl(method,ask,yes_id,nickname,app_id):
     # print "#test-----:",r.text,method
     if method == "publish":
         operate_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        svn = ask['app_svn']
+
+        svn = ask.get('app_svn', "ci")
         print "svn:",svn,type(svn)
         # version = svn.strip('/').split('/')[-1]
         version = query_db('select version from rel_apply where id = ' + str(yes_id)+';')[0][0]
